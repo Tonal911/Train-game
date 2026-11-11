@@ -16,6 +16,8 @@ async function mk(name) {
   page.on('pageerror', (e) => errors.push(`${name}: ${e.message}`));
   await page.goto(BASE);
   await page.waitForSelector('.screen.home', { timeout: 20000 });
+  await page.click('#intro-btn', { timeout: 20000 });
+  await page.waitForSelector('#intro', { state: 'detached' });
   await page.evaluate((n) => window.__tg.net.send({ t: 'setName', name: n }), name);
   return page;
 }
@@ -24,6 +26,7 @@ await a.click('text=CREATE LOBBY');
 await a.waitForSelector('.screen.lobby');
 const code = (await a.textContent('.code.big')).trim();
 await b.goto(`${BASE}/?join=${code}`);
+await b.click('#intro-btn', { timeout: 20000 });
 await b.waitForSelector('.screen.lobby');
 await b.click("text=I'M READY");
 await a.fill('.setting:has-text("Trains per player") input', '20');

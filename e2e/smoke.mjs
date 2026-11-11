@@ -18,6 +18,8 @@ const mk = async (name) => {
   page.on('console', (m) => { if (m.type() === 'error') errors.push(`${name} console: ${m.text()}`); });
   await page.goto(BASE);
   await page.waitForSelector('.screen.home', { timeout: 20000 });
+  await page.click('#intro-btn', { timeout: 20000 });
+  await page.waitForSelector('#intro', { state: 'detached' });
   await page.fill('.home input.input', name);
   await page.locator('.home input.input').first().blur();
   return page;

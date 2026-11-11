@@ -18,6 +18,29 @@
       <p class="outline big" id="bootmsg">Loading the choo-choos…</p>
     </div>
   </div>
+  <!-- Intro: unskippable 3 s fade from black, then the button pops in 1 s after everything has loaded. -->
+  <div id="intro">
+    <img id="intro-img" src="/assets/loco.jpg" alt="TRAIN GAME!">
+    <button id="intro-btn" class="hidden" type="button">LET ME IN!!</button>
+  </div>
+  <script>
+    (function () {
+      var FADE_MS = 3000, AFTER_MS = 1000, GIVE_UP_MS = 20000;
+      var img = document.getElementById('intro-img'), btn = document.getElementById('intro-btn'), intro = document.getElementById('intro');
+      var appReady = new Promise(function (res) { window.__introAppReady = res; setTimeout(res, GIVE_UP_MS); });
+      var fadeDone = new Promise(function (res) {
+        function go() { img.classList.add('fading'); setTimeout(res, FADE_MS); }
+        if (img.complete && img.naturalWidth) go(); else { img.onload = go; img.onerror = go; }
+      });
+      Promise.all([fadeDone, appReady]).then(function () {
+        setTimeout(function () { btn.classList.remove('hidden'); btn.classList.add('pop'); btn.focus(); }, AFTER_MS);
+      });
+      btn.addEventListener('click', function () {
+        intro.classList.add('leaving');
+        setTimeout(function () { intro.remove(); }, 450);
+      });
+    })();
+  </script>
   <div id="conn" class="hidden">Reconnecting…</div>
   <div id="toast"></div>
   <script type="module" src="/js/main.js"></script>

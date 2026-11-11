@@ -10,7 +10,7 @@ export async function loadArt(renderToys, playerColors) {
   const toys = renderToys(CARD_COLORS, playerColors);
   Object.assign(ART.cards, toys.cards);
   Object.assign(ART.pieces, toys.pieces);
-  ART.cards[LOCO] = '/assets/loco.jpg';
+  ART.cards[LOCO] = '/assets/rainbow.jpg';
   try {
     const list = await (await fetch('/api/overrides')).json();
     for (const f of list.files || []) {

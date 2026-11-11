@@ -72,7 +72,9 @@ window.__tg = { state, net }; // handy for debugging + e2e tests
   } catch (e) {
     console.error(e);
     $('#bootmsg').textContent = 'Could not load the game. Refresh?';
+    window.__introAppReady?.();
     return;
   }
   render();
+  window.__introAppReady?.();
 })();

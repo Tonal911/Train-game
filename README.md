@@ -106,7 +106,7 @@ Card colors themselves are data (`CARD_COLORS` in `shared/config.js`). Add an en
 
 ## Art
 - Map: `public/js/paintmap.js` paints a pale atlas (Natural Earth, public domain), then sloppy flat primaries over it: US red, Canada yellow, Mexico green. It adds a blue ocean with zigzag waves, dark-shade mountain zigzags and a few doodles.
-- Cards: Uno-ish layout (white rim, color face, tilted splat, corner symbol per color for colorblind players). The art is 3D toy wagons rendered in three.js and turned into white-outlined, slightly squeezed stickers. The Locomotive uses `public/assets/loco.jpg`.
+- Cards: Uno-ish layout (white rim, color face, tilted splat, corner symbol per color for colorblind players). The art is 3D toy wagons rendered in three.js and turned into white-outlined, slightly squeezed stickers. The Locomotive uses `public/assets/rainbow.jpg`. Every visit opens on `public/assets/loco.jpg`: an unskippable 3 s fade from black, then the "LET ME IN!!" button.
 - **Swap in your own art** without touching code by dropping files into `public/assets/overrides/` (see the README there): `card-red.png`, …, `card-loco.png`, `piece-blue.png`, …, `cardback.png`.
 - `/cards.html` is a gallery of every card and piece.
 
