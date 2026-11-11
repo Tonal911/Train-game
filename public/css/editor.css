@@ -1,0 +1,21 @@
+body[data-screen="editor"] { overflow: hidden; }
+#editor { position: fixed; inset: 0; display: grid; grid-template-columns: 1fr 360px; background: #1f1fff; }
+.ed-map { position: relative; overflow: hidden; }
+.ed-map .mapview.adding { cursor: crosshair; }
+.ed-side { background: #fff; border-left: 4px solid #000; overflow-y: auto; padding: 12px 14px 40px; font-size: 14px; }
+.ed-side h2.outline { font-size: 20px; margin: 14px 0 6px; }
+.ed-side .row { flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.ed-side .btn { font-size: 13px; padding: 6px 9px; box-shadow: 3px 3px 0 #000; }
+.ed-side .btn.on { background: var(--yellow); }
+.ed-side label.f { display: grid; grid-template-columns: 130px 1fr; align-items: center; gap: 6px; margin: 5px 0; font-size: 13px; }
+.ed-side label.f .input { margin: 0; padding: 5px 7px; font-size: 14px; }
+.ed-msgs { font-size: 12.5px; font-weight: 600; }
+.ed-msgs .err { color: #c00; }
+.ed-msgs .warn { color: #a65f00; }
+.ed-stats { font-size: 12.5px; font-weight: 600; line-height: 1.5; }
+.ed-sel { border: 3px solid #000; border-radius: 10px; padding: 8px 10px; background: #fffbe0; }
+.ed-help { font-size: 12.5px; font-weight: 600; color: #333; line-height: 1.4; }
+.ed-help li { margin-bottom: 3px; }
+.city.sel .ring { fill: var(--yellow); stroke: #000; stroke-width: 6; }
+.city.pickA .ring { fill: #2366ff; }
+.ed-top { position: absolute; left: 12px; top: 12px; z-index: 5; display: flex; gap: 10px; align-items: center; }

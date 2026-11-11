@@ -1,0 +1,13 @@
+# Render Blueprint: New > Blueprint > pick this repo. Free plan sleeps after ~15 min idle (first visit then takes ~30-60 s).
+services:
+  - type: web
+    name: train-game
+    runtime: node
+    plan: free
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"

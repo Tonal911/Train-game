@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Card Gallery</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script type="importmap">{ "imports": { "three": "/vendor/three/build/three.module.js", "three/addons/": "/vendor/three/examples/jsm/" } }</script>
+  <style>
+    body { overflow: auto; }
+    .gal { position: relative; z-index: 1; padding: 24px; display: flex; flex-direction: column; gap: 22px; }
+    .gal .row { flex-wrap: wrap; gap: 18px; align-items: flex-end; }
+    .gal .card.lg { --w: 150px; }
+    .piece { width: 200px; height: 72px; object-fit: fill; }
+  </style>
+</head>
+<body>
+  <canvas id="sky"></canvas>
+  <div class="gal" id="gal"><div class="title-blob small"><h1 class="title">CARD GALLERY</h1></div></div>
+  <script type="module">
+    import { el } from '/js/util.js';
+    import { paintSky } from '/js/paintmap.js';
+    import { loadArt, cardEl, cardBackEl, ART } from '/js/cards.js';
+    import { renderToys } from '/js/toys3d.js';
+    import { CARD_COLORS, PLAYER_COLORS } from '/shared/config.js';
+    paintSky(document.getElementById('sky'));
+    await loadArt(renderToys, PLAYER_COLORS);
+    const g = document.getElementById('gal');
+    const panel = (title, ...kids) => el('div', { class: 'panel' }, el('h2', { class: 'outline', text: title }), el('div', { class: 'row' }, ...kids));
+    g.append(panel('Train cards', ...CARD_COLORS.map((c) => cardEl(c.id, { size: 'lg' })), cardEl('loco', { size: 'lg' }), cardBackEl({ size: 'lg' })));
+    g.append(panel('Hand size', ...CARD_COLORS.map((c) => cardEl(c.id, { size: 'md', count: 2 })), cardEl('loco', { size: 'md', count: 1 })));
+    g.append(panel('Map pieces (player colors)', ...PLAYER_COLORS.map((p) => el('img', { class: 'piece', src: ART.pieces[p.id] }))));
+    g.append(panel('Raw 3D renders', ...CARD_COLORS.map((c) => el('img', { src: ART.cards[c.id], style: { width: '220px', background: '#ddd', borderRadius: '8px' } }))));
+    document.body.dataset.ready = '1';
+  </script>
+</body>
+</html>

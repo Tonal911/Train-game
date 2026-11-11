@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TRAIN GAME!</title>
+  <link rel="icon" href="/assets/loco.jpg">
+  <link rel="stylesheet" href="/css/style.css">
+  <script type="importmap">
+    { "imports": { "three": "/vendor/three/build/three.module.js", "three/addons/": "/vendor/three/examples/jsm/" } }
+  </script>
+</head>
+<body>
+  <canvas id="sky"></canvas>
+  <div id="app">
+    <div id="boot" class="screen center">
+      <div class="title-blob"><h1 class="title">TRAIN GAME!</h1></div>
+      <p class="outline big" id="bootmsg">Loading the choo-choos…</p>
+    </div>
+  </div>
+  <div id="conn" class="hidden">Reconnecting…</div>
+  <div id="toast"></div>
+  <script type="module" src="/js/main.js"></script>
+</body>
+</html>

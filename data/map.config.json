@@ -1,0 +1,102 @@
+{
+  "name": "North America",
+  "seed": 1867,
+  "generator": {
+    "kmPerTrain": 195,
+    "minLength": 1,
+    "maxLength": 6,
+    "maxKm": 1350,
+    "blockAngle": 95,
+    "mountainFactor": 0.35,
+    "cityClearance": 55,
+    "minLandFraction": 0.8,
+    "grayShare": 0.3,
+    "doubleShare": 0.24,
+    "doubleMaxLength": 5,
+    "maxDegree": 8,
+    "express": {
+      "count": 5,
+      "minKm": 1350,
+      "maxKm": 2700,
+      "kmPerTrain": 230,
+      "minLength": 7,
+      "maxLength": 9
+    },
+    "tickets": {
+      "minValue": 5,
+      "maxPerCity": 3,
+      "buckets": [
+        { "min": 5, "max": 9, "count": 12 },
+        { "min": 10, "max": 14, "count": 12 },
+        { "min": 15, "max": 19, "count": 7 },
+        { "min": 20, "max": 30, "count": 4 }
+      ]
+    }
+  },
+  "constraints": {
+    "minCities": 10,
+    "maxCities": 60,
+    "minCityDistanceKm": 170,
+    "boardMargin": 40,
+    "maxNameLength": 22
+  },
+  "cities": [
+    { "name": "Vancouver", "lat": 49.28, "lon": -123.12, "size": 2 },
+    { "name": "Seattle", "lat": 47.61, "lon": -122.33, "size": 2 },
+    { "name": "Portland", "lat": 45.52, "lon": -122.68, "size": 1 },
+    { "name": "San Francisco", "lat": 37.77, "lon": -122.42, "size": 2 },
+    { "name": "Los Angeles", "lat": 34.05, "lon": -118.24, "size": 3 },
+    { "name": "Las Vegas", "lat": 36.17, "lon": -115.14, "size": 1 },
+    { "name": "Phoenix", "lat": 33.45, "lon": -112.07, "size": 2 },
+    { "name": "Salt Lake City", "lat": 40.76, "lon": -111.89, "size": 1 },
+    { "name": "Boise", "lat": 43.62, "lon": -116.2, "size": 1 },
+    { "name": "Calgary", "lat": 51.05, "lon": -114.07, "size": 2 },
+    { "name": "Edmonton", "lat": 53.55, "lon": -113.49, "size": 1 },
+    { "name": "Regina", "lat": 50.45, "lon": -104.61, "size": 1 },
+    { "name": "Winnipeg", "lat": 49.9, "lon": -97.14, "size": 2 },
+    { "name": "Thunder Bay", "lat": 48.38, "lon": -89.25, "size": 1 },
+    { "name": "Toronto", "lat": 43.65, "lon": -79.38, "size": 3 },
+    { "name": "Montreal", "lat": 45.5, "lon": -73.57, "size": 3 },
+    { "name": "Quebec City", "lat": 46.81, "lon": -71.21, "size": 1 },
+    { "name": "Halifax", "lat": 44.65, "lon": -63.57, "size": 1 },
+    { "name": "Denver", "lat": 39.74, "lon": -104.99, "size": 2 },
+    { "name": "Albuquerque", "lat": 35.08, "lon": -106.65, "size": 1 },
+    { "name": "El Paso", "lat": 31.76, "lon": -106.49, "size": 1 },
+    { "name": "Billings", "lat": 45.78, "lon": -108.5, "size": 1 },
+    { "name": "Fargo", "lat": 46.88, "lon": -96.79, "size": 1 },
+    { "name": "Minneapolis", "lat": 44.98, "lon": -93.27, "size": 2 },
+    { "name": "Kansas City", "lat": 39.1, "lon": -94.58, "size": 2 },
+    { "name": "Dallas", "lat": 32.78, "lon": -96.8, "size": 2 },
+    { "name": "San Antonio", "lat": 29.42, "lon": -98.49, "size": 1 },
+    { "name": "Houston", "lat": 29.76, "lon": -95.37, "size": 2 },
+    { "name": "Memphis", "lat": 35.15, "lon": -90.05, "size": 1 },
+    { "name": "St. Louis", "lat": 38.63, "lon": -90.2, "size": 2 },
+    { "name": "Chicago", "lat": 41.88, "lon": -87.63, "size": 3 },
+    { "name": "Detroit", "lat": 42.33, "lon": -83.05, "size": 2 },
+    { "name": "Pittsburgh", "lat": 40.44, "lon": -80.0, "size": 1 },
+    { "name": "New Orleans", "lat": 29.95, "lon": -90.07, "size": 2 },
+    { "name": "Atlanta", "lat": 33.75, "lon": -84.39, "size": 2 },
+    { "name": "Jacksonville", "lat": 30.33, "lon": -81.66, "size": 1 },
+    { "name": "Miami", "lat": 25.76, "lon": -80.19, "size": 2 },
+    { "name": "Charlotte", "lat": 35.23, "lon": -80.84, "size": 1 },
+    { "name": "Washington", "lat": 38.91, "lon": -77.04, "size": 2 },
+    { "name": "New York", "lat": 40.71, "lon": -74.01, "size": 3 },
+    { "name": "Boston", "lat": 42.36, "lon": -71.06, "size": 2 }
+  ],
+  "terrain": {
+    "mountains": [
+      [[-120,55.5],[-114.8,55.5],[-113.8,50.5],[-110.8,46.6],[-106.6,44.6],[-105.2,40.6],[-105.1,37.0],[-105.6,35.4],[-107.6,34.4],[-109.6,37.0],[-111.4,39.6],[-112.2,42.4],[-114.6,44.0],[-116.6,46.0],[-118.6,49.0],[-121.0,52.0]],
+      [[-122.6,50.2],[-120.6,50.2],[-120.9,47.0],[-121.4,44.0],[-120.4,40.6],[-118.4,37.6],[-117.9,35.6],[-118.9,35.0],[-119.9,37.0],[-121.8,40.6],[-122.4,44.0],[-122.1,47.0]],
+      [[-84.6,34.2],[-82.6,34.6],[-79.6,37.6],[-77.6,39.8],[-75.0,41.6],[-72.6,43.8],[-70.6,45.3],[-72.2,45.7],[-74.6,43.8],[-77.6,41.6],[-79.6,39.9],[-82.2,37.6],[-85.2,34.9]]
+    ],
+    "deserts": [
+      [[-117.6,37.6],[-113.0,38.6],[-108.0,36.6],[-104.2,33.0],[-104.0,30.0],[-110.0,31.0],[-115.0,32.2],[-117.2,34.6]]
+    ]
+  },
+  "overrides": {
+    "addRoutes": [],
+    "removeRoutes": [],
+    "setRoutes": [],
+    "express": []
+  }
+}

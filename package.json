@@ -1,0 +1,20 @@
+{
+  "name": "train-game",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Goofy multiplayer route-building train game across the US and Canada.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test test/*.test.js",
+    "board": "node scripts/board-report.mjs",
+    "build-geo": "node scripts/build-geo.mjs",
+    "e2e": "node e2e/smoke.mjs"
+  },
+  "dependencies": {
+    "three": "0.169.0",
+    "ws": "8.18.0"
+  }
+}

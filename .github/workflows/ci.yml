@@ -1,0 +1,23 @@
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Board generator report
+        run: npm run board -- data/map.config.json /tmp/board.svg
+      - name: Server boots and serves
+        run: |
+          PORT=3000 node server/index.js &
+          for i in $(seq 1 20); do curl -fs localhost:3000/healthz && break; sleep 0.5; done
+          curl -fs localhost:3000/ | grep -q "TRAIN GAME"
+          curl -fs localhost:3000/vendor/three/build/three.module.js > /dev/null
