@@ -339,15 +339,7 @@ h2.outline { --o: 2px; font-size: 24px; margin: 4px 0 10px; letter-spacing: .5px
 #intro-img { height: 100vh; width: 100vw; object-fit: contain; opacity: 0; user-select: none; -webkit-user-drag: none; }
 #intro-img.fading { animation: introFade 3s linear forwards; }
 @keyframes introFade { from { opacity: 0; } to { opacity: 1; } }
-#intro-btn { position: absolute; left: 50%; bottom: 9vh; transform: translateX(-50%); font: 900 clamp(48px, 8vw, 110px) var(--font); letter-spacing: 1px;
-  padding: .18em .6em; color: #fff; background: var(--red); border: 8px solid #000; border-radius: 28px; cursor: pointer; white-space: nowrap;
-  box-shadow: 10px 12px 0 #000, 0 0 0 8px #fff; text-shadow: 0 5px 0 #000, 4px 0 0 #000, -4px 0 0 #000, 0 -4px 0 #000; }
-#intro-btn:hover { background: #ff4a4a; }
-#intro-btn:active { box-shadow: 4px 4px 0 #000, 0 0 0 8px #fff; }
-#intro-btn.pop { animation: introPop .3s cubic-bezier(.3,1.7,.5,1) both, introBounce .35s ease-in-out .3s 2; }
-@keyframes introPop { from { transform: translateX(-50%) scale(0) rotate(-12deg); } to { transform: translateX(-50%) scale(1) rotate(-3deg); } }
-@keyframes introBounce { 0%, 100% { transform: translateX(-50%) translateY(0) rotate(-3deg); } 50% { transform: translateX(-50%) translateY(-38px) rotate(2deg); } }
-#intro-btn.pop { transform: translateX(-50%) rotate(-3deg); }
+
 
 /* ---------- secret scores ---------- */
 .blackout { display: inline-block; min-width: 1.6em; padding: 0 4px; background: #000; color: #000; border-radius: 4px; text-align: center; text-shadow: none !important; user-select: none; }
@@ -437,26 +429,33 @@ body[data-screen="game"] .mytickets { bottom: auto; }
 .shines { pointer-events: none; }
 .shine { fill: #fff; stroke: #fff36b; stroke-width: 6; opacity: 0; transform-box: fill-box; transform-origin: center; animation: shine .55s ease-out both; mix-blend-mode: screen; }
 @keyframes shine { 0% { opacity: 0; } 35% { opacity: .9; } 100% { opacity: 0; } }
-#intro-start { position: absolute; inset: 0; margin: auto; width: max-content; height: max-content; display: flex; align-items: center; gap: 22px; background: none; border: 0; cursor: pointer; color: #fff; font: 900 clamp(28px, 4vw, 54px) var(--font); letter-spacing: 2px; transition: opacity .25s; }
-#intro-start:disabled { cursor: wait; opacity: .4; }
-#intro-start.gone { opacity: 0; pointer-events: none; }
-#intro-start .label { text-shadow: -3px -3px 0 #ff1c1c, 3px 3px 0 #2366ff; animation: startpulse 1s ease-in-out infinite alternate; }
-#intro-start:hover .label { color: var(--yellow); }
-@keyframes startpulse { to { transform: scale(1.06); } }
-.mini-loco { width: clamp(120px, 14vw, 200px); height: auto; overflow: visible; animation: locobob .5s ease-in-out infinite alternate; }
-.mini-loco .black { fill: #1c1c1c; stroke: #fff; stroke-width: 3; }
-.mini-loco .red { fill: #e01818; stroke: #fff; stroke-width: 3; }
-.mini-loco .gold { fill: #f2c230; }
-.mini-loco .lamp { fill: #fff6b0; }
-.mini-loco .win { fill: #8fd0ff; stroke: #fff; stroke-width: 2; }
-.mini-loco .spoke { stroke: #fff; stroke-width: 2.5; fill: none; }
-.mini-loco .rod { stroke: #c9c9c9; stroke-width: 5; stroke-linecap: round; }
-.mini-loco .rail { stroke: #777; stroke-width: 5; }
-.mini-loco .wheel { animation: wheelspin 1.2s linear infinite; }
-.mini-loco .puffs circle { fill: #bbb; animation: puff 1.4s ease-out infinite; transform-box: fill-box; transform-origin: center; }
-.mini-loco .puffs circle:nth-child(2) { animation-delay: .45s; }
-.mini-loco .puffs circle:nth-child(3) { animation-delay: .9s; }
-@keyframes wheelspin { to { transform: rotate(360deg); } }
-@keyframes locobob { to { transform: translateY(-3px); } }
-@keyframes puff { from { opacity: .9; transform: translate(0, 10px) scale(.5); } to { opacity: 0; transform: translate(-14px, -16px) scale(1.4); } }
 .btn.endturn { animation: micpulse 1s ease-in-out infinite; }
+
+/* ---------- intro: ornate loco + 8-bit buttons ---------- */
+@font-face { font-family: 'Press Start 2P'; src: url(/assets/fonts/press-start-2p-latin-400-normal.woff2) format('woff2'), url(/assets/fonts/press-start-2p-latin-400-normal.woff) format('woff'); font-display: block; }
+#intro-start-row { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 0; transition: opacity .25s; }
+#intro-start-row.gone { opacity: 0; pointer-events: none; }
+.mini-loco { width: min(560px, 52vw); height: auto; flex: none; margin-right: -2vw; }
+.pixel-btn {
+  font-family: 'Press Start 2P', ui-monospace, 'Courier New', monospace; font-weight: 400;
+  font-size: clamp(14px, 1.7vw, 24px); line-height: 1; letter-spacing: 1px; color: #fff; text-transform: uppercase;
+  padding: 18px 22px 16px; margin: 6px; border: 0; border-radius: 0; cursor: pointer; white-space: nowrap;
+  background-color: #d8000c;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 2px, transparent 2px 4px),
+    linear-gradient(45deg, rgba(255,255,255,.07) 25%, transparent 25%, transparent 75%, rgba(255,255,255,.07) 75%),
+    linear-gradient(45deg, rgba(255,255,255,.07) 25%, transparent 25%, transparent 75%, rgba(255,255,255,.07) 75%);
+  background-size: 100% 4px, 8px 8px, 8px 8px;
+  background-position: 0 0, 0 0, 4px 4px;
+  /* notched pixel border + bevel, no rounded corners */
+  box-shadow: 0 -4px 0 #000, 0 4px 0 #000, -4px 0 0 #000, 4px 0 0 #000, 8px 8px 0 rgba(0,0,0,.55), inset -4px -4px 0 #8a0007, inset 4px 4px 0 #ff7070;
+  text-shadow: 3px 3px 0 #000;
+  -webkit-font-smoothing: none; font-smooth: never;
+}
+.pixel-btn:hover:not(:disabled) { background-color: #ff1a26; transform: translateY(-4px); }
+.pixel-btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 -4px 0 #000, 0 4px 0 #000, -4px 0 0 #000, 4px 0 0 #000, inset 4px 4px 0 #8a0007, inset -4px -4px 0 #ff7070; }
+.pixel-btn:disabled { cursor: wait; filter: grayscale(.8) brightness(.6); }
+.pixel-btn:focus-visible { outline: 4px dashed #ffd400; outline-offset: 6px; }
+#intro-btn { position: absolute; left: 50%; bottom: 9vh; transform: translateX(-50%); font-size: clamp(22px, 3vw, 40px); padding: 24px 30px 22px; }
+#intro-btn:hover { transform: translateX(-50%) translateY(-4px); }
+#intro-btn:active { transform: translateX(-50%) translateY(4px); }

@@ -21,27 +21,124 @@
   <!-- Intro: click to start (unlocks audio) -> unskippable 3 s fade from black + swell -> LET ME IN!! pops in 1 s after load. -->
   <div id="intro">
     <img id="intro-img" src="/assets/loco.jpg" alt="TRAIN GAME!">
-    <button id="intro-start" type="button" disabled>
-      <svg class="mini-loco" viewBox="0 0 240 140" aria-hidden="true">
-        <g class="puffs"><circle cx="186" cy="18" r="11"/><circle cx="200" cy="10" r="8"/><circle cx="172" cy="12" r="7"/></g>
-        <line x1="4" y1="130" x2="236" y2="130" class="rail"/>
-        <path d="M222 116 L236 128 L190 128 L190 100 Z" class="red"/>
-        <rect x="88" y="62" width="112" height="44" rx="20" class="black"/>
-        <rect x="100" y="60" width="4" height="48" class="gold"/><rect x="140" y="60" width="4" height="48" class="gold"/><rect x="176" y="60" width="4" height="48" class="gold"/>
-        <path d="M174 62 L170 30 L196 30 L192 62 Z" class="black"/><rect x="166" y="24" width="34" height="8" rx="3" class="black"/>
-        <path d="M128 62 Q136 44 144 62 Z" class="gold"/>
-        <circle cx="206" cy="74" r="9" class="gold"/><circle cx="206" cy="74" r="5" class="lamp"/>
-        <rect x="30" y="40" width="62" height="70" rx="4" class="red"/><rect x="24" y="32" width="74" height="10" rx="4" class="black"/>
-        <rect x="42" y="52" width="22" height="20" rx="3" class="win"/><rect x="70" y="52" width="14" height="20" rx="3" class="win"/>
-        <rect x="26" y="104" width="190" height="10" rx="3" class="black"/>
-        <g class="wheel" style="transform-origin:62px 112px"><circle cx="62" cy="112" r="17" class="red"/><path d="M62 95 V129 M45 112 H79 M50 100 L74 124 M74 100 L50 124" class="spoke"/></g>
-        <g class="wheel" style="transform-origin:112px 112px"><circle cx="112" cy="112" r="17" class="red"/><path d="M112 95 V129 M95 112 H129 M100 100 L124 124 M124 100 L100 124" class="spoke"/></g>
-        <g class="wheel" style="transform-origin:180px 120px"><circle cx="180" cy="120" r="10" class="red"/><path d="M180 110 V130 M170 120 H190" class="spoke"/></g>
-        <line x1="62" y1="112" x2="112" y2="112" class="rod"/>
+    <div id="intro-start-row">
+      <svg class="mini-loco" viewBox="0 -40 580 300" aria-hidden="true">
+        <defs>
+          <linearGradient id="lg-boiler" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a7a7a"/><stop offset=".16" stop-color="#2e2e2e"/><stop offset=".55" stop-color="#0b0b0b"/><stop offset=".86" stop-color="#2a2a2a"/><stop offset="1" stop-color="#141414"/></linearGradient>
+          <linearGradient id="lg-brass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff4b8"/><stop offset=".32" stop-color="#e8b53a"/><stop offset=".7" stop-color="#9c6b12"/><stop offset="1" stop-color="#f1cc63"/></linearGradient>
+          <linearGradient id="lg-brassh" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9c6b12"/><stop offset=".35" stop-color="#fff1a8"/><stop offset=".6" stop-color="#e2ab33"/><stop offset="1" stop-color="#7d5410"/></linearGradient>
+          <linearGradient id="lg-red" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff5a46"/><stop offset=".45" stop-color="#d11d17"/><stop offset="1" stop-color="#7f0b09"/></linearGradient>
+          <linearGradient id="lg-redh" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8a0d0a"/><stop offset=".4" stop-color="#ff4a3a"/><stop offset="1" stop-color="#9a100c"/></linearGradient>
+          <linearGradient id="lg-wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b9743a"/><stop offset=".5" stop-color="#7c3f18"/><stop offset="1" stop-color="#4a210a"/></linearGradient>
+          <linearGradient id="lg-steel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e4e8ec"/><stop offset=".5" stop-color="#8b9198"/><stop offset="1" stop-color="#454a50"/></linearGradient>
+          <linearGradient id="lg-glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff7cf"/><stop offset="1" stop-color="#e99a35"/></linearGradient>
+          <linearGradient id="lg-roof" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a2414"/><stop offset="1" stop-color="#170804"/></linearGradient>
+          <linearGradient id="lg-beam" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff3c4" stop-opacity=".55"/><stop offset="1" stop-color="#fff3c4" stop-opacity="0"/></linearGradient>
+          <radialGradient id="rg-lamp" cx=".45" cy=".45" r=".6"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#ffe27a"/><stop offset="1" stop-color="#c47208"/></radialGradient>
+          <radialGradient id="rg-dome" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fffbe0"/><stop offset=".35" stop-color="#f0c450"/><stop offset=".8" stop-color="#9a6912"/><stop offset="1" stop-color="#6b470c"/></radialGradient>
+          <radialGradient id="rg-smoke" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#d9d9d9" stop-opacity=".85"/><stop offset=".7" stop-color="#9a9a9a" stop-opacity=".45"/><stop offset="1" stop-color="#777" stop-opacity="0"/></radialGradient>
+          <radialGradient id="rg-hub" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#fff2a0"/><stop offset=".6" stop-color="#d49b2a"/><stop offset="1" stop-color="#6e4a0c"/></radialGradient>
+          <g id="spoke"><path d="M-1.7 -6 L-1.1 -31 L1.1 -31 L1.7 -6 Z" fill="#7e0c09"/></g>
+          <g id="driver">
+            <circle r="38" fill="url(#lg-steel)"/>
+            <circle r="33.5" fill="url(#lg-red)"/>
+            <circle r="31" fill="#a3130f"/>
+            <use href="#spoke"/><use href="#spoke" transform="rotate(30)"/><use href="#spoke" transform="rotate(60)"/><use href="#spoke" transform="rotate(90)"/>
+            <use href="#spoke" transform="rotate(120)"/><use href="#spoke" transform="rotate(150)"/><use href="#spoke" transform="rotate(180)"/><use href="#spoke" transform="rotate(210)"/>
+            <use href="#spoke" transform="rotate(240)"/><use href="#spoke" transform="rotate(270)"/><use href="#spoke" transform="rotate(300)"/><use href="#spoke" transform="rotate(330)"/>
+            <path d="M-25 17 A30 30 0 0 0 25 17 Q0 6 -25 17 Z" fill="#6f0a08"/>
+            <circle r="9" fill="url(#rg-hub)"/><circle r="3" fill="#5a3c08"/>
+            <circle cx="14" cy="10" r="4.2" fill="url(#lg-steel)"/>
+          </g>
+        </defs>
+        <!-- smoke -->
+        <circle cx="452" cy="-6" r="26" fill="url(#rg-smoke)"/><circle cx="420" cy="-18" r="20" fill="url(#rg-smoke)"/><circle cx="392" cy="-28" r="15" fill="url(#rg-smoke)"/><circle cx="476" cy="-24" r="16" fill="url(#rg-smoke)"/>
+        <!-- headlight beam toward the button -->
+        <path d="M506 74 L580 46 L580 124 L506 96 Z" fill="url(#lg-beam)"/>
+        <!-- rails + ties -->
+        <g fill="#3b2414">
+          <rect x="10" y="238" width="16" height="6"/><rect x="54" y="238" width="16" height="6"/><rect x="98" y="238" width="16" height="6"/><rect x="142" y="238" width="16" height="6"/><rect x="186" y="238" width="16" height="6"/><rect x="230" y="238" width="16" height="6"/><rect x="274" y="238" width="16" height="6"/><rect x="318" y="238" width="16" height="6"/><rect x="362" y="238" width="16" height="6"/><rect x="406" y="238" width="16" height="6"/><rect x="450" y="238" width="16" height="6"/><rect x="494" y="238" width="16" height="6"/><rect x="538" y="238" width="16" height="6"/>
+        </g>
+        <rect x="0" y="232" width="580" height="6" fill="url(#lg-steel)"/>
+        <!-- tender -->
+        <path d="M26 118 Q44 92 72 102 Q96 86 120 100 Q138 96 148 118 Z" fill="#121212"/>
+        <path d="M60 104 L70 98 L78 104 Z M100 96 L110 92 L114 98 Z M124 104 L132 100 L136 106 Z" fill="#3a3a3a"/>
+        <rect x="22" y="112" width="128" height="5" rx="1" fill="url(#lg-brass)"/>
+        <rect x="22" y="117" width="128" height="80" rx="5" fill="url(#lg-red)"/>
+        <rect x="30" y="125" width="112" height="64" rx="4" fill="none" stroke="#f3cf6a" stroke-width="1"/>
+        <rect x="34" y="129" width="104" height="56" rx="3" fill="none" stroke="#f3cf6a" stroke-width=".5" opacity=".7"/>
+        <text x="86" y="163" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-weight="700" font-size="15" fill="url(#lg-brass)" letter-spacing="1">Train Game</text>
+        <rect x="18" y="197" width="136" height="8" fill="#141414"/>
+        <use href="#driver" transform="translate(52 216) scale(.42)"/><use href="#driver" transform="translate(118 216) scale(.42)"/>
+        <rect x="146" y="192" width="16" height="5" fill="#222"/>
+        <!-- cab -->
+        <rect x="158" y="80" width="80" height="118" fill="url(#lg-wood)"/>
+        <rect x="160" y="88" width="76" height="2" fill="url(#lg-brassh)"/>
+        <path d="M168 128 V104 Q178 90 188 104 V128 Z" fill="url(#lg-glass)"/>
+        <path d="M204 128 V104 Q214 90 224 104 V128 Z" fill="url(#lg-glass)"/>
+        <path d="M168 128 V104 Q178 90 188 104 V128 Z M204 128 V104 Q214 90 224 104 V128 Z" fill="none" stroke="#f3cf6a" stroke-width="1.2"/>
+        <rect x="164" y="146" width="68" height="44" rx="3" fill="url(#lg-red)"/>
+        <rect x="169" y="151" width="58" height="34" rx="2" fill="none" stroke="#f3cf6a" stroke-width="1"/>
+        <ellipse cx="198" cy="168" rx="12" ry="8" fill="url(#lg-brassh)"/>
+        <path d="M146 84 Q198 58 250 84 L250 90 L146 90 Z" fill="url(#lg-roof)"/>
+        <rect x="146" y="88" width="104" height="3" fill="url(#lg-brassh)"/>
+        <!-- boiler -->
+        <rect x="236" y="150" width="44" height="38" fill="#191919"/>
+        <rect x="236" y="106" width="204" height="68" rx="7" fill="url(#lg-boiler)"/>
+        <rect x="262" y="106" width="5" height="68" fill="url(#lg-brass)"/><rect x="304" y="106" width="5" height="68" fill="url(#lg-brass)"/><rect x="346" y="106" width="5" height="68" fill="url(#lg-brass)"/><rect x="388" y="106" width="5" height="68" fill="url(#lg-brass)"/>
+        <rect x="240" y="118" width="196" height="1.6" fill="url(#lg-brassh)"/>
+        <!-- domes, bell, whistle -->
+        <rect x="243" y="86" width="5" height="22" fill="url(#lg-brassh)"/><path d="M240 88 Q245.5 76 251 88 Z" fill="url(#rg-dome)"/>
+        <path d="M272 107 Q273 86 290 81 Q307 86 308 107 Z" fill="url(#lg-redh)"/><rect x="282" y="76" width="16" height="6" rx="2" fill="url(#lg-brassh)"/>
+        <path d="M328 107 Q330 74 350 69 Q370 74 372 107 Z" fill="url(#rg-dome)"/><rect x="340" y="63" width="20" height="7" rx="2" fill="url(#lg-brassh)"/>
+        <path d="M376 107 L378 90 L382 90 L380 107 Z M394 107 L392 90 L396 90 L398 107 Z" fill="url(#lg-brassh)"/>
+        <path d="M378 88 Q387 78 396 88 Z" fill="url(#lg-brassh)"/>
+        <path d="M380 100 Q381 86 387 84 Q393 86 394 100 Z" fill="url(#rg-dome)"/>
+        <!-- smokestack (balloon funnel) -->
+        <rect x="410" y="72" width="18" height="36" fill="url(#lg-boiler)"/>
+        <path d="M386 28 L452 28 L433 76 L405 76 Z" fill="url(#lg-boiler)"/>
+        <rect x="382" y="20" width="74" height="10" rx="3" fill="#1e1e1e"/>
+        <rect x="382" y="28" width="74" height="2.5" fill="url(#lg-brassh)"/>
+        <rect x="403" y="74" width="32" height="4" fill="url(#lg-brassh)"/>
+        <!-- smokebox + front -->
+        <rect x="436" y="102" width="38" height="74" rx="5" fill="url(#lg-boiler)"/>
+        <ellipse cx="474" cy="139" rx="5" ry="35" fill="#2b2b2b"/>
+        <circle cx="474" cy="140" r="11" fill="url(#rg-hub)"/><circle cx="474" cy="140" r="7" fill="url(#lg-red)"/>
+        <!-- headlamp -->
+        <rect x="452" y="98" width="24" height="7" fill="url(#lg-brassh)"/>
+        <rect x="444" y="60" width="52" height="40" rx="3" fill="url(#lg-red)"/>
+        <rect x="440" y="54" width="60" height="8" rx="2" fill="url(#lg-brass)"/>
+        <path d="M452 50 L458 42 L482 42 L488 50 Z" fill="url(#lg-brassh)"/>
+        <circle cx="464" cy="80" r="10" fill="none" stroke="#f3cf6a" stroke-width="1.2"/>
+        <path d="M460 80 Q464 72 468 80 Q464 88 460 80 Z" fill="#f3cf6a"/>
+        <ellipse cx="497" cy="80" rx="9" ry="17" fill="url(#rg-lamp)"/>
+        <!-- frame, running board -->
+        <rect x="236" y="174" width="240" height="4" fill="url(#lg-brassh)"/>
+        <rect x="150" y="186" width="330" height="10" fill="#151515"/>
+        <!-- drivers + rods -->
+        <use href="#driver" transform="translate(294 194)"/>
+        <use href="#driver" transform="translate(372 194)"/>
+        <use href="#driver" transform="translate(424 214) scale(.47)"/>
+        <use href="#driver" transform="translate(459 214) scale(.47)"/>
+        <rect x="304" y="200" width="82" height="7" rx="3.5" fill="url(#lg-steel)"/>
+        <path d="M384 200 L436 186 L438 193 L388 207 Z" fill="url(#lg-steel)"/>
+        <!-- cylinder -->
+        <rect x="418" y="176" width="52" height="26" rx="5" fill="url(#lg-boiler)"/>
+        <rect x="418" y="176" width="5" height="26" fill="url(#lg-brass)"/><rect x="465" y="176" width="5" height="26" fill="url(#lg-brass)"/>
+        <!-- pilot (cowcatcher) -->
+        <rect x="472" y="188" width="22" height="9" fill="url(#lg-redh)"/>
+        <rect x="472" y="186" width="22" height="2.5" fill="url(#lg-brassh)"/>
+        <path d="M480 197 L494 197 L566 232 L480 232 Z" fill="url(#lg-red)"/>
+        <path d="M486 199 L489 232 M494 199 L501 232 M502 202 L514 232 M512 206 L527 232 M522 211 L540 232 M533 216 L553 232" stroke="#7a0b08" stroke-width="2.2"/>
+        <!-- flag -->
+        <rect x="458" y="104" width="1.6" height="34" fill="url(#lg-brassh)"/>
+        <rect x="460" y="104" width="22" height="14" fill="#f4f4f4"/>
+        <path d="M460 104 H482 V106 H460 Z M460 108 H482 V110 H460 Z M460 112 H482 V114 H460 Z M460 116 H482 V118 H460 Z" fill="#d11d17"/>
+        <rect x="460" y="104" width="9" height="7" fill="#1f3c9e"/>
       </svg>
-      <span class="label">CLICK TO START</span>
-    </button>
-    <button id="intro-btn" class="hidden" type="button">LET ME IN!!</button>
+      <button id="intro-start" class="pixel-btn" type="button" disabled>CLICK TO START</button>
+    </div>
+    <button id="intro-btn" class="pixel-btn hidden" type="button">LET ME IN!!</button>
   </div>
   <script>
     (function () {
@@ -58,11 +155,11 @@
         started = true;
         if (e && e.preventDefault) e.preventDefault();
         if (window.__introHooks) window.__introHooks.start();
-        startBtn.classList.add('gone');
+        document.getElementById('intro-start-row').classList.add('gone');
         imgReady.then(function () {
           img.classList.add('fading');
           setTimeout(function () {
-            appReady.then(function () { setTimeout(function () { btn.classList.remove('hidden'); btn.classList.add('pop'); btn.focus(); }, AFTER_MS); });
+            appReady.then(function () { setTimeout(function () { btn.classList.remove('hidden'); }, AFTER_MS); });
           }, FADE_MS);
         });
       }
