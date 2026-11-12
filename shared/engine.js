@@ -24,6 +24,7 @@ export class Game {
       trainsPerPlayer: settings.trainsPerPlayer ?? 45,
       extraLocomotives: settings.extraLocomotives ?? 0,
       extraCardsPerColor: settings.extraCardsPerColor ?? 0,
+      hideScores: !!settings.hideScores,
     };
     const order = this.rng.shuffle([...players]);
     this.players = order.map((p) => ({
@@ -171,7 +172,7 @@ export class Game {
     this.ticketDeck.unshift(...back); // returned to the bottom
     p.pending = null;
     this.addEvent({ type: 'keepTickets', pid: p.pid, kept: keep.length, returned: back.length });
-    this.addLog(pi, `${p.name} kept ${keep.length} ticket${keep.length > 1 ? 's' : ''}.`);
+    this.addLog(pi, this.settings.hideScores ? `${p.name} picked tickets.` : `${p.name} kept ${keep.length} ticket${keep.length > 1 ? 's' : ''}.`);
     if (this.phase === 'initialTickets') {
       if (this.players.every((x) => !x.pending)) {
         this.phase = 'playing';
@@ -245,8 +246,9 @@ export class Game {
     p.trains -= L;
     const pts = routePoints(L);
     p.routePts += pts;
-    this.addEvent({ type: 'claim', pid: p.pid, routeId: r.id, spent, points: pts });
-    this.addLog(pi, `${p.name} claimed ${this.routeName(r)} (${L}) for +${pts}.`);
+    const hide = this.settings.hideScores;
+    this.addEvent({ type: 'claim', pid: p.pid, routeId: r.id, spent, points: hide ? null : pts });
+    this.addLog(pi, `${p.name} claimed ${this.routeName(r)} (${L})${hide ? '' : ` for +${pts}`}.`);
     this.endTurn();
   }
 
@@ -273,7 +275,7 @@ export class Game {
       if (this.finalTurns <= 0) return this.finish();
     } else if (p.trains <= RULES.endTriggerTrains) {
       this.finalTurns = this.players.length;
-      this.addLog(this.current, `${p.name} is down to ${p.trains} trains: FINAL ROUND! Everyone gets one last turn.`);
+      this.addLog(this.current, this.settings.hideScores ? `${p.name} is almost out of trains: FINAL ROUND! Everyone gets one last turn.` : `${p.name} is down to ${p.trains} trains: FINAL ROUND! Everyone gets one last turn.`);
       this.addEvent({ type: 'finalRound', pid: p.pid });
     }
     this.current = (this.current + 1) % this.players.length;
@@ -334,16 +336,19 @@ export class Game {
       settings: { ...this.settings },
       players: this.players.map((p, i) => ({
         pid: p.pid, name: p.name, color: p.color, seat: i,
-        trains: p.trains, score: p.routePts,
+        // hidden mode: everyone's score is hidden (yours too); other players' trains + ticket counts too
+        trains: this.settings.hideScores && !finished && i !== me ? null : p.trains,
+        score: this.settings.hideScores && !finished ? null : p.routePts,
         handCount: Object.values(p.hand).reduce((a, b) => a + b, 0),
         known: { ...p.known },
-        ticketCount: p.tickets.length,
+        ticketCount: this.settings.hideScores && !finished && i !== me ? null : p.tickets.length,
         choosingTickets: !!p.pending,
         routes: [...p.routes],
       })),
       log: this.log.slice(-40),
       events: this.events.map((e) => {
         if (e.type === 'draw' && !e.public && e.pid !== pid) { const { card, ...rest } = e; return rest; }
+        if (e.type === 'keepTickets' && this.settings.hideScores && !finished && e.pid !== pid) { const { kept, returned, ...rest } = e; return rest; }
         return e;
       }),
       seq: this.seq,

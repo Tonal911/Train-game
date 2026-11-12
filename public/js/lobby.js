@@ -1,6 +1,8 @@
 import { el, add, clear, toast } from './util.js';
 import { PLAYER_COLORS, SETTINGS_LIMITS, colorInfo } from '/shared/config.js';
 import { paintBackground } from './paintmap.js';
+import { micButton } from './game.js';
+import * as voice from './voice.js';
 
 export class Chat {
   constructor(net, state) {
@@ -46,6 +48,7 @@ export class LobbyScreen {
       el('div', { class: 'row between top' },
         el('div', { class: 'row' }, el('div', { class: 'title-blob small' }, el('h1', { class: 'title', text: 'TRAIN GAME!' })), this.title),
         el('div', { class: 'row' }, el('span', { class: 'outline', text: 'Code' }), this.code,
+          micButton(),
           el('button', { class: 'btn yellow', onclick: invite, text: 'COPY INVITE' }),
           el('button', { class: 'btn', onclick: () => net.send({ t: 'leave' }), text: 'LEAVE' }))),
       el('div', { class: 'cols' },
@@ -54,7 +57,12 @@ export class LobbyScreen {
         el('div', { class: 'panel tilt-l grow' }, el('h2', { class: 'outline', text: 'Map' }), this.mapBox),
         el('div', { class: 'panel tilt-r chatpanel' }, el('h2', { class: 'outline', text: 'Chat' }), this.chat.node))));
     this.renderMap();
+    this.spkTimer = setInterval(() => {
+      for (const n of this.members.querySelectorAll('.member[data-pid]')) n.classList.toggle('speaking', voice.speaking(n.dataset.pid));
+    }, 120);
   }
+
+  destroy() { clearInterval(this.spkTimer); }
 
   meMember() { return this.state.lobby.members.find((m) => m.pid === this.state.me.pid); }
   onChat(m) { this.chat.add(m); }
@@ -90,8 +98,9 @@ export class LobbyScreen {
     clear(this.members);
     for (const m of l.members) {
       const pc = PLAYER_COLORS.find((c) => c.id === m.color);
-      add(this.members, el('div', { class: 'member' + (m.connected ? '' : ' away') },
+      add(this.members, el('div', { class: 'member' + (m.connected ? '' : ' away') + (m.mic ? ' mic' : ''), dataset: { pid: m.pid } },
         el('span', { class: 'swatch', style: { background: pc?.hex } }),
+        el('span', { class: 'spk', dataset: { pid: m.pid }, title: m.mic ? 'mic on' : 'mic off' }, el('i'), el('i'), el('i')),
         el('b', { text: m.name }),
         m.pid === l.hostPid ? el('span', { class: 'tag', text: 'HOST' }) : null,
         m.pid === state.me.pid ? el('span', { class: 'tag you', text: 'YOU' }) : null,
@@ -126,6 +135,12 @@ export class LobbyScreen {
       num('Trains per player', 'trainsPerPlayer', S.trainsPerPlayer, l.settings.trainsPerPlayer, 'classic = 45; more = longer game'),
       num('Extra locomotives', 'extraLocomotives', S.extraLocomotives, l.settings.extraLocomotives, '+ wild cards in the deck (base 14)'),
       num('Extra cards per color', 'extraCardsPerColor', S.extraCardsPerColor, l.settings.extraCardsPerColor, 'base 12 of each color'),
+      (() => {
+        const cb = el('input', { type: 'checkbox', checked: l.settings.hideScores ? 'checked' : null, disabled: isHost ? null : 'disabled' });
+        cb.addEventListener('change', () => this.net.send({ t: 'settings', settings: { hideScores: cb.checked } }));
+        return el('label', { class: 'setting check' }, el('span', { text: 'Secret scores' }), cb,
+          el('small', { text: "Everyone's points are blacked out (yours too), and you can't see other players' trains or ticket counts. Full tally at the end." }));
+      })(),
       isHost ? null : el('p', { class: 'small', text: 'Only the host can change settings.' }));
 
     // map controls

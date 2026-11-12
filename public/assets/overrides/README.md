@@ -10,3 +10,6 @@ Drop image files here to replace the generated art. No code changes needed; rest
 | `cardback.png` | the whole face of the card back |
 
 Transparent PNGs look best for wagons/pieces ("squeezed cutout" style). Images are stretched to fit.
+
+## Sounds
+Drop `sfx-intro`, `sfx-fart`, `sfx-thud`, `sfx-card`, `sfx-horn`, `sfx-fanfare` or `sfx-loser` (`.mp3`, `.ogg` or `.wav`) here to replace the synthesized versions. `sfx-horn` gets chopped into 3-5 pitch-shifted toots for each of the loco's speech bubbles.

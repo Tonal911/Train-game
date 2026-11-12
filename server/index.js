@@ -26,7 +26,7 @@ const MOUNTS = [
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.gif': 'image/gif', '.ico': 'image/x-icon', '.txt': 'text/plain; charset=utf-8',
+  '.jpeg': 'image/jpeg', '.mp3': 'audio/mpeg', '.ogg': 'audio/ogg', '.wav': 'audio/wav', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.gif': 'image/gif', '.ico': 'image/x-icon', '.txt': 'text/plain; charset=utf-8',
 };
 
 function serveStatic(req, res) {
@@ -67,7 +67,7 @@ const server = http.createServer((req, res) => {
   if (req.method !== 'GET' && req.method !== 'HEAD') { res.writeHead(405).end(); return; }
   if (req.url === '/api/overrides') {
     let files = [];
-    try { files = fs.readdirSync(path.join(ROOT, 'public/assets/overrides')).filter((f) => /\.(png|jpe?g|webp|gif)$/i.test(f)); } catch {}
+    try { files = fs.readdirSync(path.join(ROOT, 'public/assets/overrides')).filter((f) => /\.(png|jpe?g|webp|gif|mp3|ogg|wav)$/i.test(f)); } catch {}
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' });
     return res.end(JSON.stringify({ files }));
   }
@@ -79,7 +79,7 @@ wss.on('connection', (ws) => {
   ws.isAlive = true;
   ws.on('pong', () => (ws.isAlive = true));
   manager.attach(ws);
-  ws.on('message', (data) => manager.handle(ws, data.toString()));
+  ws.on('message', (data, isBinary) => (isBinary ? manager.handleBinary(ws, data) : manager.handle(ws, data.toString())));
   ws.on('close', () => manager.detach(ws));
   ws.on('error', () => {});
 });

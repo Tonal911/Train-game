@@ -102,6 +102,7 @@ export class LobbyManager {
       s.name = cleanName(name, s.name);
     }
     ws.session = s;
+    s.mic = false; // client mic state resets on (re)connect
     s.sockets.add(ws);
     s.lastSeen = Date.now();
     this.send(ws, { t: 'welcome', pid: s.pid, token: s.token, name: s.name });
@@ -139,7 +140,7 @@ export class LobbyManager {
       lobby: {
         id: l.id, name: l.name, hostPid: l.hostPid, status: l.status, maxPlayers: l.maxPlayers,
         settings: { ...l.settings }, boardId: l.board.id, mapName: l.board.name, customMap: l.board !== this.defaultBoard,
-        members: l.members.map((m) => ({ pid: m.pid, name: this.byPid.get(m.pid)?.name || m.name, color: m.color, ready: m.ready, connected: this.connected(m.pid) })),
+        members: l.members.map((m) => ({ pid: m.pid, name: this.byPid.get(m.pid)?.name || m.name, color: m.color, ready: m.ready, connected: this.connected(m.pid), mic: !!this.byPid.get(m.pid)?.mic && this.connected(m.pid) })),
         chat: l.chat.slice(-60),
       },
     };
@@ -158,6 +159,7 @@ export class LobbyManager {
       for (const p of view.players) {
         const ps = this.byPid.get(p.pid);
         p.connected = this.connected(p.pid);
+        p.mic = p.connected && !!ps?.mic;
         p.awayMs = p.connected ? 0 : now - (ps?.lastSeen || now);
       }
       view.canSkip = this.skipTargets(l).length > 0;
@@ -202,7 +204,7 @@ export class LobbyManager {
     const l = {
       id, name: cleanName(name, `${s.name}'s game`).slice(0, 24), hostPid: s.pid,
       maxPlayers: clampInt(maxPlayers, SETTINGS_LIMITS.maxPlayers),
-      settings: { trainsPerPlayer: SETTINGS_LIMITS.trainsPerPlayer.default, extraLocomotives: 0, extraCardsPerColor: 0 },
+      settings: { trainsPerPlayer: SETTINGS_LIMITS.trainsPerPlayer.default, extraLocomotives: 0, extraCardsPerColor: 0, hideScores: false },
       members: [], status: 'waiting', game: null, board: this.defaultBoard, chat: [], createdAt: Date.now(),
     };
     this.lobbies.set(id, l);
@@ -264,6 +266,7 @@ export class LobbyManager {
     if (!l) return;
     if (settings) {
       for (const k of ['trainsPerPlayer', 'extraLocomotives', 'extraCardsPerColor']) if (settings[k] != null) l.settings[k] = clampInt(settings[k], SETTINGS_LIMITS[k]);
+      if (settings.hideScores != null) l.settings.hideScores = !!settings.hideScores;
     }
     if (maxPlayers != null) l.maxPlayers = Math.max(l.members.length, clampInt(maxPlayers, SETTINGS_LIMITS.maxPlayers));
     if (name != null) l.name = cleanName(name, l.name).slice(0, 24);
@@ -367,6 +370,33 @@ export class LobbyManager {
     this.sendLobby(l);
     for (const m of l.members) { const ms = this.byPid.get(m.pid); if (ms) this.sendTo(ms, { t: 'game', view: null }); }
     this.broadcastList();
+  }
+
+  on_voice(ws, s, { on }) {
+    s.mic = !!on;
+    const l = this.lobbies.get(s.lobbyId);
+    if (l) { this.sendLobby(l); if (l.game) this.sendGame(l); }
+  }
+
+  /** Binary frames are voice chunks: relay to everyone else in the lobby, tagged with the sender pid. */
+  handleBinary(ws, data) {
+    const s = ws.session;
+    if (!s || !s.mic || !s.lobbyId || data.length > 1600 || data.length < 8) return;
+    const now = Date.now();
+    const vb = ws.voiceBucket ||= { tokens: 30, at: now };
+    vb.tokens = Math.min(30, vb.tokens + ((now - vb.at) / 1000) * 15);
+    vb.at = now;
+    if (vb.tokens < 1) return;
+    vb.tokens--;
+    const l = this.lobbies.get(s.lobbyId);
+    if (!l) return;
+    const frame = Buffer.concat([Buffer.from(s.pid.padEnd(12, ' ').slice(0, 12), 'ascii'), data]);
+    for (const m of l.members) {
+      if (m.pid === s.pid) continue;
+      const ms = this.byPid.get(m.pid);
+      if (!ms || ms.lobbyId !== l.id) continue;
+      for (const sock of ms.sockets) if (sock.readyState === 1 && sock.bufferedAmount < 256 * 1024) sock.send(frame, { binary: true });
+    }
   }
 
   on_chat(ws, s, { text }) {

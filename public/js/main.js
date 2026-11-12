@@ -6,6 +6,31 @@ import { PLAYER_COLORS } from '/shared/config.js';
 import { HomeScreen } from './home.js';
 import { LobbyScreen } from './lobby.js';
 import { GameScreen } from './game.js';
+import * as sfx from './sfx.js';
+import * as voice from './voice.js';
+import { installHelp } from './help.js';
+
+// ---------- intro audio: big swell during the fade; LET ME IN cuts it and farts ----------
+window.__introHooks = { letMeIn() { sfx.stopSwell(); sfx.fart(); } };
+(function introAudio() {
+  const intro = document.getElementById('intro');
+  if (!intro || !sfx.ctx) return;
+  sfx.ctx.resume().catch(() => {});
+  setTimeout(() => {
+    if (!document.getElementById('intro')) return;
+    if (sfx.ctx.state === 'running') return sfx.introSwell();
+    // autoplay blocked: start the swell on the first click/key during the intro (does not skip it)
+    const hint = document.getElementById('intro-hint');
+    hint?.classList.remove('hidden');
+    const start = (e) => {
+      if (e.target?.id === 'intro-btn' || sfx.swellStarted()) return;
+      hint?.classList.add('hidden');
+      sfx.ctx.resume().then(() => { if (document.getElementById('intro')) sfx.introSwell(); }).catch(() => {});
+    };
+    intro.addEventListener('pointerdown', start);
+    addEventListener('keydown', start, { once: true });
+  }, 200);
+})();
 
 const state = { me: null, lobbies: { list: [], max: 12 }, lobby: null, boards: new Map(), view: null, geo: null, online: false };
 let screen = null;
@@ -35,7 +60,7 @@ function render() {
 
 function onMessage(msg) {
   switch (msg.t) {
-    case 'welcome': state.me = { pid: msg.pid, name: msg.name }; break;
+    case 'welcome': state.me = { pid: msg.pid, name: msg.name }; voice.init(net, msg.pid); if (voice.isOn()) net.send({ t: 'voice', on: true }); break;
     case 'lobbies': state.lobbies = msg; break;
     case 'lobby':
       state.lobby = msg.lobby;
@@ -57,7 +82,9 @@ function onStatus(s) {
   $('#conn').classList.toggle('hidden', s === 'online');
 }
 
+installHelp();
 const net = new Net(onMessage, onStatus);
+net.onBinary = (buf) => voice.receive(buf);
 window.__tg = { state, net }; // handy for debugging + e2e tests
 
 (async function boot() {

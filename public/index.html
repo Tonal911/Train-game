@@ -22,6 +22,7 @@
   <div id="intro">
     <img id="intro-img" src="/assets/loco.jpg" alt="TRAIN GAME!">
     <button id="intro-btn" class="hidden" type="button">LET ME IN!!</button>
+    <div id="intro-hint" class="hidden">click anywhere for sound</div>
   </div>
   <script>
     (function () {
@@ -36,6 +37,7 @@
         setTimeout(function () { btn.classList.remove('hidden'); btn.classList.add('pop'); btn.focus(); }, AFTER_MS);
       });
       btn.addEventListener('click', function () {
+        if (window.__introHooks) window.__introHooks.letMeIn();
         intro.classList.add('leaving');
         setTimeout(function () { intro.remove(); }, 450);
       });

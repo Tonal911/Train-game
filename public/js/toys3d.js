@@ -26,10 +26,10 @@ function chassis(g, len = 3) {
   for (const s of [-1, 1]) g.add(at(box(0.22, 0.14, 0.26, dark), s * (len / 2 + 0.08), 0.48, 0));
 }
 
-const MODELS = {
+export const MODELS = {
   boxcar(g, col) {
     chassis(g);
-    const body = mat(col);
+    const body = mat(col, { emissive: col, emissiveIntensity: 0.22 }); // keeps the exact player color under shading
     g.add(at(box(3, 1.35, 1.15, body, 0.08), 0, 1.28, 0));
     g.add(at(box(3.12, 0.12, 1.26, mat(shade(col, 0.6)), 0.04), 0, 2.0, 0));
     g.add(at(box(0.95, 1.05, 0.04, mat(shade(col, 0.72))), 0, 1.25, 0.58));
@@ -115,7 +115,7 @@ const MODELS = {
   },
 };
 
-function makeScene() {
+export function makeScene() {
   const scene = new THREE.Scene();
   scene.add(new THREE.HemisphereLight('#ffffff', '#8a8a8a', 1.6));
   const key = new THREE.DirectionalLight('#ffffff', 2.4); key.position.set(4, 7, 6); scene.add(key);
@@ -167,10 +167,12 @@ function sticker(src, outline, seed) {
     const a = (i / 24) * Math.PI * 2, r = outline * (0.7 + rng() * 0.6);
     sh.drawImage(sil, pad + Math.cos(a) * r, pad + Math.sin(a) * r);
   }
+  // black copy of the outline for the hard drop shadow (no canvas filters: works in every browser)
+  const dark = document.createElement('canvas'); dark.width = shadow.width; dark.height = shadow.height;
+  const dctx = dark.getContext('2d');
+  dctx.drawImage(shadow, 0, 0); dctx.globalCompositeOperation = 'source-in'; dctx.fillStyle = '#000'; dctx.fillRect(0, 0, dark.width, dark.height);
   ctx.globalAlpha = 0.35;
-  ctx.filter = 'brightness(0)';
-  ctx.drawImage(shadow, outline * 0.6, outline * 0.9);
-  ctx.filter = 'none';
+  ctx.drawImage(dark, outline * 0.6, outline * 0.9);
   ctx.globalAlpha = 1;
   ctx.drawImage(shadow, 0, 0);
   ctx.drawImage(src, pad, pad);
@@ -187,7 +189,7 @@ function fallback2D(color, w, h) {
   const c = document.createElement('canvas'); c.width = w; c.height = h;
   const x = c.getContext('2d');
   x.fillStyle = color; x.strokeStyle = '#000'; x.lineWidth = 6;
-  x.beginPath(); x.roundRect(w * 0.08, h * 0.18, w * 0.84, h * 0.5, 14); x.fill(); x.stroke();
+  x.beginPath(); if (x.roundRect) x.roundRect(w * 0.08, h * 0.18, w * 0.84, h * 0.5, 14); else x.rect(w * 0.08, h * 0.18, w * 0.84, h * 0.5); x.fill(); x.stroke();
   x.fillStyle = '#111';
   for (const cx of [0.25, 0.4, 0.6, 0.75]) { x.beginPath(); x.arc(w * cx, h * 0.75, h * 0.1, 0, 7); x.fill(); }
   return c;

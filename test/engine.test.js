@@ -216,3 +216,23 @@ test('random bot games always finish with conserved cards and sane state', () =>
     }
   }
 });
+
+test('hidden scores: no score for anyone, no trains/tickets for others, all revealed at the end', () => {
+  const g = new Game(board(), mkPlayers(3), { hideScores: true }, 11);
+  startPlaying(g);
+  const p = g.cur;
+  const r = g.board.routes.find((x) => x.length === 2 && !x.express);
+  p.hand[LOCO] = 5;
+  g.act(p.pid, { type: 'claim', routeId: r.id, color: null, locos: 2 });
+  const v = g.viewFor(p.pid);
+  for (const q of v.players) {
+    assert.equal(q.score, null);
+    if (q.pid === p.pid) { assert.equal(q.trains, 43); assert.equal(q.ticketCount, 2); }
+    else { assert.equal(q.trains, null); assert.equal(q.ticketCount, null); }
+  }
+  assert.ok(!v.log.some((l) => /\+\d/.test(l.text)));
+  assert.equal(v.events.find((e) => e.type === 'claim').points, null);
+  g.finish();
+  const end = g.viewFor(p.pid);
+  assert.ok(end.players.every((q) => q.score != null && q.trains != null && q.ticketCount != null));
+});

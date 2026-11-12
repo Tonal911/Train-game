@@ -59,4 +59,8 @@ export const SETTINGS_LIMITS = {
   extraCardsPerColor: { min: 0, max: 12, default: 0 },
 };
 
+/** Voice chat: deliberately terrible. Mic audio is decimated to this rate and crushed to VOICE_BITS. */
+export const VOICE_RATE = 4000;
+export const VOICE_BITS = 5;
+
 export const MAX_LOBBIES = 12;

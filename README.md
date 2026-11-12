@@ -25,6 +25,17 @@ Refreshing or briefly losing your connection keeps your seat: your identity is s
 - Final scoring: completed tickets add their value, unfinished tickets subtract it, and the longest continuous line gets +10 (ties all get it). Tie-breaks are most completed tickets, then longest line.
 - The draw pile reshuffles from the discards when it runs out. If nothing at all is possible, you may pass.
 
+### Lobby options
+- **Secret scores:** everyone's points are blacked out (yours too), and other players' train and ticket counts are hidden. Everything is revealed by the end-of-game show.
+- **Voice chat:** click **mic** in the lobby or the game. Audio goes through the game server at 4 kHz / 5-bit, so it sounds terrible on purpose. A green bar indicator lights up on the speaker's card. It needs https, or localhost.
+
+### End of game
+The loco (`public/assets/lococutout.png`) hosts a results show:
+- Scores roll on slot-machine reels and lock digit by digit, from last place up to 3rd.
+- The final two are revealed together.
+- He's lovely to everyone except 2nd place.
+- **SKIP** jumps to the full score table.
+
 ### Controls
 Scroll to zoom, drag to pan, double-click to zoom in (Shift+double-click to zoom out). Keys `+` `-` `0`. Hover a ticket to light up its cities. Hover a route for its details, and click it to claim. Other players' hands always show as fanned card backs with counts. Any colors they took face-up appear as chips under their hand.
 
@@ -109,6 +120,19 @@ Card colors themselves are data (`CARD_COLORS` in `shared/config.js`). Add an en
 - Cards: Uno-ish layout (white rim, color face, tilted splat, corner symbol per color for colorblind players). The art is 3D toy wagons rendered in three.js and turned into white-outlined, slightly squeezed stickers. The Locomotive uses `public/assets/rainbow.jpg`. Every visit opens on `public/assets/loco.jpg`: an unskippable 3 s fade from black, then the "LET ME IN!!" button.
 - **Swap in your own art** without touching code by dropping files into `public/assets/overrides/` (see the README there): `card-red.png`, …, `card-loco.png`, `piece-blue.png`, …, `cardback.png`.
 - `/cards.html` is a gallery of every card and piece.
+- Sounds are all synthesized in `public/js/sfx.js`:
+  - intro swell
+  - reverb fart
+  - wagon thud
+  - card flick
+  - slot ticks
+  - drumroll
+  - fanfare
+  - sad trombone
+  - the loco's horn "speech"
+
+  Replace any of them by dropping `sfx-intro.mp3`, `sfx-fart.mp3`, `sfx-thud.mp3`, `sfx-card.mp3`, `sfx-horn.mp3`, `sfx-fanfare.mp3` or `sfx-loser.mp3` into `public/assets/overrides/`.
+- Browsers block sound until the first click. If the intro swell can't autoplay, a hint says "click anywhere for sound". Clicking during the fade starts the swell without skipping the intro.
 
 ## Layout
 ```

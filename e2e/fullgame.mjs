@@ -9,6 +9,7 @@ const BASE = process.argv[2] || 'http://localhost:3000';
 const OUT = process.argv[3] || 'e2e/out';
 fs.mkdirSync(OUT, { recursive: true });
 const browser = await playwright.chromium.launch();
+const pickTickets = async (p) => { const t = p.locator('.tickets-dlg .ticket'); await t.nth(0).click(); await t.nth(1).click(); await p.click('.tickets-dlg .btn.red'); };
 const errors = [];
 async function mk(name) {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 860 } });
@@ -36,7 +37,7 @@ await a.waitForTimeout(400);
 await b.click("text=I'M READY"); // settings change un-readies everyone
 await a.waitForTimeout(400);
 await a.click('text=START!');
-for (const p of [a, b]) { await p.waitForSelector('.tickets-dlg'); await p.click('.tickets-dlg .btn.red'); }
+for (const p of [a, b]) { await p.waitForSelector('.tickets-dlg'); await pickTickets(p); }
 
 const pick = `(() => {
   const s = window.__tg.state, v = s.view; if (!v || v.phase !== 'playing' || v.currentPid !== s.me.pid) return null;
@@ -74,7 +75,9 @@ while (steps++ < 1500) {
       await p.waitForSelector('.dialog.claim');
       await p.screenshot({ path: `${OUT}/10-claim-dialog.png` });
       await p.click('.dialog.claim .btn.red');
-      await p.waitForTimeout(700);
+      await p.waitForTimeout(650);
+      await p.screenshot({ path: `${OUT}/11a-wagons-flying.png` });
+      await p.waitForTimeout(1400);
       await p.screenshot({ path: `${OUT}/11-after-claim.png` });
     } else {
       await p.evaluate((x) => window.__tg.net.send({ t: 'act', action: x }), act);
@@ -85,6 +88,17 @@ while (steps++ < 1500) {
   }
   if (!acted) await a.waitForTimeout(100);
 }
+await a.waitForSelector('.finale', { timeout: 10000 });
+await a.waitForSelector('.fin-card.big', { timeout: 15000 });
+await a.waitForTimeout(1500);
+await a.screenshot({ path: `${OUT}/12a-finale-rolling.png` });
+await a.waitForSelector('.fin-card.winner', { timeout: 40000 });
+await a.waitForTimeout(400);
+await a.screenshot({ path: `${OUT}/12b-finale-winner.png` });
+await a.waitForSelector('.fin-done', { timeout: 30000 });
+await a.waitForTimeout(500);
+await a.screenshot({ path: `${OUT}/12c-finale-loser.png` });
+await a.click('.fin-done', { force: true });
 await a.waitForSelector('.dialog.result', { timeout: 10000 });
 await a.waitForTimeout(1600);
 await a.screenshot({ path: `${OUT}/12-result.png` });

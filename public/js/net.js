@@ -14,6 +14,7 @@ export class Net {
   connect() {
     const proto = location.protocol === 'https:' ? 'wss' : 'ws';
     const ws = new WebSocket(`${proto}://${location.host}/ws`);
+    ws.binaryType = 'arraybuffer';
     this.ws = ws;
     this.onStatus('connecting');
     ws.onopen = () => {
@@ -23,6 +24,7 @@ export class Net {
       for (const m of this.queue.splice(0)) ws.send(m);
     };
     ws.onmessage = (e) => {
+      if (typeof e.data !== 'string') { this.onBinary?.(e.data); return; }
       let msg;
       try { msg = JSON.parse(e.data); } catch { return; }
       if (msg.t === 'welcome') { storage('tg_token', msg.token); storage('tg_name', msg.name); }
@@ -34,6 +36,10 @@ export class Net {
       this.backoff = Math.min(this.backoff * 1.7, 6000);
     };
     ws.onerror = () => {};
+  }
+
+  sendBinary(buf) {
+    if (this.ws && this.ws.readyState === 1 && this.ws.bufferedAmount < 64 * 1024) this.ws.send(buf);
   }
 
   send(obj, queueIfOffline = true) {

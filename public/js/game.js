@@ -5,6 +5,10 @@ import { Chat } from './lobby.js';
 import { CARD_COLORS, LOCO, GRAY, PLAYER_COLORS, RULES, colorInfo, routePoints } from '/shared/config.js';
 import { paymentOptions } from '/shared/engine.js';
 import { pointAt, polylineLength } from '/shared/geom.js';
+import { flyClaim } from './fly3d.js';
+import { runFinale } from './finale.js';
+import * as voice from './voice.js';
+import * as sfx from './sfx.js';
 
 const HAND_ORDER = [...CARD_COLORS.map((c) => c.id), LOCO];
 const PHEX = Object.fromEntries(PLAYER_COLORS.map((c) => [c.id, c.hex]));
@@ -43,6 +47,7 @@ export class GameScreen {
       el('button', { class: 'btn icon', title: 'Zoom out (-)', onclick: () => this.map.zoomBy(1 / 1.35), text: '−' }),
       el('button', { class: 'btn icon', title: 'Fit map (0)', onclick: () => this.map.fit(), text: '⤢' }),
       el('button', { class: 'btn icon', title: 'Log / chat', onclick: () => this.side.classList.toggle('closed'), text: '☰' }),
+      micButton(),
       el('button', { class: 'btn icon', title: 'Leave game (your seat is kept)', onclick: () => { if (confirm('Leave the game? Your seat is kept and you can rejoin from the lobby list.')) this.net.send({ t: 'leave' }); }, text: '✕' }));
     this.tip = el('div', { class: 'tip hidden' });
     this.fx = el('div', { class: 'fx' });
@@ -57,11 +62,14 @@ export class GameScreen {
       else if (e.key === 'Escape' && this.modalKind === 'claim') this.closeModal();
     };
     addEventListener('keydown', this.keys);
+    this.spkTimer = setInterval(() => {
+      for (const [pid, node] of this.playerEls || []) node.classList.toggle('speaking', voice.speaking(pid));
+    }, 120);
     this.ro = new ResizeObserver(() => this.layout());
     for (const n of [this.players, this.hand, this.turnbar, this.market, this.tickets]) this.ro.observe(n);
   }
 
-  destroy() { removeEventListener('keydown', this.keys); this.ro.disconnect(); this.map.destroy(); }
+  destroy() { removeEventListener('keydown', this.keys); this.ro.disconnect(); clearInterval(this.spkTimer); this.finale?.cancel(); this.map.destroy(); }
 
   tab(e, which) {
     for (const b of this.side.querySelectorAll('.tab')) b.classList.toggle('on', b === e.target);
@@ -75,7 +83,7 @@ export class GameScreen {
     const pr = this.players.getBoundingClientRect(), hr = this.hand.getBoundingClientRect(), tr = this.turnbar.getBoundingClientRect(), mr = this.market.getBoundingClientRect();
     const kr = this.tickets.getBoundingClientRect();
     // the hand may overlap the empty Gulf/Mexico strip a little
-    this.map.setInsets({ left: pr.right - r.left + 4, top: Math.max(tr.bottom, mr.bottom) - r.top + 2, right: r.right - kr.left + 4, bottom: Math.max(0, r.bottom - hr.top - 40) });
+    this.map.setInsets({ left: pr.right - r.left + 4, top: Math.max(tr.bottom, mr.bottom) - r.top + 2, right: kr.width ? r.right - kr.left + 4 : 10, bottom: Math.max(0, r.bottom - hr.top - 40) });
     if (!this.laidOut) { this.laidOut = true; this.map.fit(); } else this.map.fit(true);
   }
 
@@ -89,6 +97,7 @@ export class GameScreen {
     const v = state.view;
     if (!v) return;
     const first = this.lastSeq == null;
+    if (first) this.resultOnLoad = !!v.result;
     const newEvents = first ? [] : v.events.filter((e) => e.seq > this.lastSeq);
     const sources = this.captureSources(newEvents);
     this.lastSeq = v.seq;
@@ -100,6 +109,7 @@ export class GameScreen {
     this.renderTickets(v);
     this.renderLog(v);
     const claimedNow = newEvents.filter((e) => e.type === 'claim').map((e) => e.routeId);
+    for (const rid of claimedNow) { this.map.hold(rid); setTimeout(() => this.map.revealAll(rid), 6000); }
     this.map.update({ owner: v.owner, players: v.players, doublesBlocked: v.doublesBlocked, pieceArt: ART.pieces, playerHex: PHEX }, claimedNow);
     this.renderModals(v);
     this.animate(newEvents, sources);
@@ -126,6 +136,7 @@ export class GameScreen {
     this.turnbar.style.setProperty('--pc', PHEX[cur.color]);
     add(this.turnbar, el('div', { class: 'tb-main outline', text: main }));
     if (sub) add(this.turnbar, el('div', { class: 'tb-sub', text: sub }));
+    if (v.settings?.hideScores && v.phase !== 'finished') this.turnbar.append(el('div', { class: 'tb-secret', text: 'SECRET SCORES MODE' }));
     if (v.finalTurns != null && v.phase === 'playing') add(this.turnbar, el('div', { class: 'tb-final', text: `FINAL ROUND · ${v.finalTurns} turn${v.finalTurns === 1 ? '' : 's'} left` }));
     const row = el('div', { class: 'row' });
     if (this.me?.canPass) row.append(el('button', { class: 'btn yellow', onclick: () => this.act({ type: 'pass' }), text: 'PASS (nothing to do)' }));
@@ -185,14 +196,15 @@ export class GameScreen {
       }
       const known = el('div', { class: 'known' }, ...HAND_ORDER.filter((c) => p.known[c] > 0).map((c) =>
         el('span', { class: 'chip' + (c === LOCO ? ' loco' : ''), style: { background: colorInfo(c).hex }, title: `Known ${colorInfo(c).name} (taken face-up)`, text: p.known[c] })));
-      const node = el('div', { class: 'pp' + (i === v.current && v.phase === 'playing' ? ' active' : '') + (isMe ? ' me' : '') + (p.connected ? '' : ' away'), style: { '--pc': PHEX[p.color] } },
+      const node = el('div', { class: 'pp' + (i === v.current && v.phase === 'playing' ? ' active' : '') + (isMe ? ' me' : '') + (p.connected ? '' : ' away') + (p.mic ? ' mic' : ''), style: { '--pc': PHEX[p.color] } },
         el('div', { class: 'pp-head' },
           el('span', { class: 'dot', title: p.connected ? 'online' : 'disconnected' }),
           el('b', { class: 'pp-name', text: p.name + (isMe ? ' (you)' : '') }),
-          el('span', { class: 'pp-score outline', text: String(p.score) })),
+          el('span', { class: 'spk', title: p.mic ? 'mic on' : 'mic off' }, el('i'), el('i'), el('i')),
+          p.score == null ? el('span', { class: 'pp-score blackout', title: 'Scores are secret until the end!', text: '??' }) : el('span', { class: 'pp-score outline', text: String(p.score) })),
         el('div', { class: 'pp-stats' },
-          el('span', { class: 'stat', title: 'Trains left' }, ART.pieces[p.color] ? el('img', { src: ART.pieces[p.color], alt: '' }) : null, el('b', { text: p.trains })),
-          el('span', { class: 'stat', title: 'Destination tickets' }, el('span', { class: 'tk' }), el('b', { text: p.ticketCount })),
+          el('span', { class: 'stat', title: 'Trains left' }, ART.pieces[p.color] ? el('img', { src: ART.pieces[p.color], alt: '' }) : null, p.trains == null ? el('b', { class: 'blackout', title: 'Secret!', text: '??' }) : el('b', { text: p.trains })),
+          el('span', { class: 'stat', title: 'Destination tickets' }, el('span', { class: 'tk' }), p.ticketCount == null ? el('b', { class: 'blackout', title: 'Secret!', text: '?' }) : el('b', { text: p.ticketCount })),
           el('span', { class: 'pp-hand', title: `${p.handCount} cards in hand` }, fan, el('span', { class: 'hc outline', text: p.handCount }))),
         p.choosingTickets ? el('span', { class: 'tag', text: 'choosing tickets…' }) : null,
         known.children.length ? known : null);
@@ -319,7 +331,14 @@ export class GameScreen {
 
   renderModals(v) {
     if (v.result) {
-      if (this.modalKind !== 'result') this.openResult(v);
+      if (this.modalKind !== 'result' && !this.finale) {
+        if (this.resultOnLoad || this.finaleDone) this.openResult(v);
+        else {
+          this.closeModal();
+          this.hideTip();
+          this.finale = runFinale({ parent: this.root, rows: v.result.rows, onDone: () => { this.finaleDone = true; this.finale = null; this.openResult(this.view); } });
+        }
+      }
       return;
     }
     if (this.modalKind === 'result') this.closeModal();
@@ -336,12 +355,12 @@ export class GameScreen {
     this.modalKind = 'tickets';
     this.modalKey = key;
     clear(this.modal);
-    const chosen = new Set(pend.tickets.map((t) => t.id));
+    const chosen = new Set();
     const btn = el('button', { class: 'btn red big' });
     const refresh = () => {
-      btn.textContent = `KEEP ${chosen.size}`;
+      btn.textContent = `KEEP ${chosen.size}/${pend.tickets.length}`;
       btn.disabled = chosen.size < pend.min;
-      for (const n of row.children) n.classList.toggle('off', !chosen.has(n.dataset.id));
+      for (const n of row.children) n.classList.toggle('picked', chosen.has(n.dataset.id));
     };
     const row = el('div', { class: 'trow' });
     for (const t of pend.tickets) {
@@ -352,7 +371,7 @@ export class GameScreen {
     btn.addEventListener('click', () => { this.act({ type: 'keepTickets', ids: [...chosen] }); btn.disabled = true; });
     add(this.modal, el('div', { class: 'dialog panel tickets-dlg' },
       el('h2', { class: 'outline', text: 'DESTINATION TICKETS' }),
-      el('p', { text: `Click to toggle. Keep at least ${pend.min}. Finished = +points, unfinished = −points. Hover to see them on the map.` }),
+      el('p', { text: `Click the tickets you want to keep (at least ${pend.min}). Finished = +points, unfinished = −points. Hover to see them on the map.` }),
       row, el('div', { class: 'row' }, btn)));
     refresh();
     this.modal.classList.remove('hidden');
@@ -435,6 +454,7 @@ export class GameScreen {
     for (const e of events) {
       const from = sources.get(e.seq);
       const mine = e.pid === this.state.me.pid;
+      if (e.type === 'draw') setTimeout(() => sfx.cardDraw(mine ? 1 : 0.5), delay);
       if (e.type === 'draw' && from) {
         const to = mine ? (this.handGroups?.get(e.card) || this.hand).getBoundingClientRect() : this.playerEls.get(e.pid)?.getBoundingClientRect();
         if (to) this.fly(e.card && (mine || e.public) ? cardEl(e.card, { size: 'sm' }) : cardBackEl({ size: 'sm' }), from, to, delay, mine && e.source === 'deck');
@@ -446,9 +466,16 @@ export class GameScreen {
         const r = this.board.routes.find((x) => x.id === e.routeId);
         const mid = pointAt(r.path, polylineLength(r.path) / 2);
         const s = this.map.toScreen(mid.x, mid.y);
-        const pop = el('div', { class: 'scorepop outline', text: `+${e.points}`, style: { left: s.x + 'px', top: s.y + 'px', animationDelay: delay + 'ms' } });
-        this.fx.append(pop);
-        setTimeout(() => pop.remove(), 1800 + delay);
+        const owner = this.view.players.find((p) => p.pid === e.pid);
+        const card = this.playerEls.get(e.pid)?.getBoundingClientRect() || from;
+        const segs = this.map.screenSegs(e.routeId);
+        const ok = card && owner && flyClaim({ from: card, segs, hex: PHEX[owner.color], fx: this.fx, onLand: (i) => this.map.reveal(e.routeId, i), onAllLanded: () => this.map.shine(e.routeId) });
+        if (!ok) { this.map.revealAll(e.routeId); sfx.thud(); this.map.shine(e.routeId); }
+        if (e.points != null) {
+          const pop = el('div', { class: 'scorepop outline', text: `+${e.points}`, style: { left: s.x + 'px', top: s.y + 'px', animationDelay: delay + 1200 + segs.length * 110 + 'ms' } });
+          this.fx.append(pop);
+          setTimeout(() => pop.remove(), 3200 + delay + segs.length * 110);
+        }
         if (from && this.discardEl) {
           const to = this.discardEl.getBoundingClientRect();
           e.spent.slice(0, 6).forEach((c, i) => this.fly(cardEl(c, { size: 'sm' }), from, to, delay + i * 70));
@@ -483,4 +510,16 @@ export class GameScreen {
     this.fx.append(s);
     setTimeout(() => s.remove(), 1500);
   }
+}
+
+/** Mic toggle button (shared by lobby + game). */
+export function micButton() {
+  const b = el('button', { class: 'btn icon mic', title: 'Voice chat: toggle your microphone' });
+  const paint = (on) => { b.classList.toggle('on', on); b.textContent = on ? 'MIC' : 'mic'; b.title = on ? 'Mic is ON (click to mute)' : 'Mic is off (click to talk)'; };
+  paint(voice.isOn());
+  voice.onChange(paint);
+  b.addEventListener('click', async () => {
+    try { await voice.toggle(); } catch (e) { toast(e.message || 'Could not open the mic.', 'error'); }
+  });
+  return b;
 }

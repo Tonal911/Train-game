@@ -10,6 +10,7 @@ const BASE = process.argv[2] || 'http://localhost:3000';
 const OUT = process.argv[3] || 'e2e/out';
 fs.mkdirSync(OUT, { recursive: true });
 const browser = await playwright.chromium.launch();
+const pickTickets = async (p) => { const t = p.locator('.tickets-dlg .ticket'); await t.nth(0).click(); await t.nth(1).click(); await p.click('.tickets-dlg .btn.red'); };
 const errors = [];
 const mk = async (name) => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 860 } });
@@ -45,7 +46,7 @@ const all = [host, ...others];
 for (const p of all) await p.waitForSelector('.tickets-dlg', { timeout: 15000 });
 await host.waitForTimeout(600);
 await shot(host, '02-tickets');
-for (const p of all) await p.click('.tickets-dlg .btn.red');
+for (const p of all) await pickTickets(p);
 await host.waitForTimeout(1200);
 await shot(host, '03-game');
 

@@ -44,7 +44,7 @@ const SHAPES = {
   heart: 'M50 88 C10 60 4 34 22 20 C36 9 48 18 50 30 C52 18 64 9 78 20 C96 34 90 60 50 88 Z',
   bolt: 'M58 4 L20 56 L46 56 L38 96 L80 40 L54 40 Z',
   moon: 'M64 8 A44 44 0 1 0 92 66 A34 34 0 1 1 64 8 Z',
-  loco: 'M10 60 L10 34 L30 34 L30 18 L44 18 L44 34 L70 34 L70 22 L84 22 L84 34 L92 34 L92 60 Z M22 78 A10 10 0 1 0 22.1 78 Z M74 78 A10 10 0 1 0 74.1 78 Z',
+  loco: 'M38 6 L62 6 L57 64 L43 64 Z M50 72 A11 11 0 1 0 50.1 72 Z',
 };
 export function shapeSvg(shape, cls = 'shape') {
   return el('svg', { class: cls, viewBox: '0 0 100 100' }, el('path', { d: SHAPES[shape] || SHAPES.circle }));
@@ -80,7 +80,6 @@ export function cardEl(color, { size = 'md', count = null, cls = '' } = {}) {
     el('svg', { class: 'splat', viewBox: '0 0 100 100', preserveAspectRatio: 'none' }, el('path', { d: splatPath(seed) })),
     art ? el('img', { class: 'art' + (isLoco ? ' photo' : ''), src: art, alt: '', draggable: 'false' }) : null,
     el('div', { class: 'corner tl' }, shapeSvg(info.shape)),
-    el('div', { class: 'corner br' }, shapeSvg(info.shape)),
     el('div', { class: 'cname', text: isLoco ? 'LOCO!' : info.name.toUpperCase() }),
   );
   const card = el('div', { class: `card ${size} ${isLoco ? 'loco' : ''} ${color === 'white' ? 'whitecard' : ''} ${cls}`, dataset: { color } }, face);

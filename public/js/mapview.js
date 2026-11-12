@@ -99,7 +99,8 @@ export class MapView {
     this.gHi = el('g', { class: 'hi' });
     this.gCities = el('g', { class: 'cities' });
     this.gLabels = el('g', { class: 'labels' });
-    svg.append(defs, this.gRoutes, this.gPieces, this.gHi, this.gCities, this.gLabels);
+    this.gShine = el('g', { class: 'shines' });
+    svg.append(defs, this.gRoutes, this.gPieces, this.gShine, this.gHi, this.gCities, this.gLabels);
     this.routeEls = new Map();
     const rng = makeRng(31);
     for (const r of this.board.routes) {
@@ -155,26 +156,57 @@ export class MapView {
   update({ owner = {}, players = [], doublesBlocked = false, pieceArt = {}, playerHex = {} } = {}, animateIds = []) {
     this.owner = owner;
     clear(this.gPieces);
+    this.held ||= new Map();
+    // halos go in their own layer underneath, so chunky outlines never cover a neighbour's wagons
+    const halos = el('g', { class: 'halos' }), bodies = el('g', { class: 'bodies' });
+    this.gPieces.append(halos, bodies);
     for (const [rid, seat] of Object.entries(owner)) {
       const p = players[seat];
       if (!p) continue;
-      const anim = animateIds.includes(rid);
-      const g = el('g', { class: 'claimed' + (anim ? ' pop' : '') });
+      const anim = animateIds.includes(rid) && !this.held.has(rid);
+      const held = this.held.get(rid);
       this.segs.get(rid)?.forEach((s, i) => {
         const tr = `translate(${s.x.toFixed(1)} ${s.y.toFixed(1)}) rotate(${s.ang.toFixed(1)})`;
-        const inner = el('g', { transform: tr }, el('g', { class: 'pc', style: { animationDelay: anim ? i * 90 + 'ms' : '0ms' } },
-          el('rect', { class: 'phalo', x: -s.len / 2 - 7, y: -SEG_W / 2 - 9, width: s.len + 14, height: SEG_W + 18, rx: 10 }),
+        const cls = 'pc' + (held?.has(i) ? ' held' : '') + (anim ? ' pop' : '');
+        const d = { rid, i: String(i) };
+        halos.append(el('g', { transform: tr }, el('g', { class: cls, dataset: d, style: { animationDelay: anim ? i * 90 + 'ms' : '0ms' } },
+          el('rect', { class: 'phalo', x: -s.len / 2 - 11, y: -SEG_W / 2 - 13, width: s.len + 22, height: SEG_W + 26, rx: 13 }))));
+        bodies.append(el('g', { transform: tr }, el('g', { class: cls, dataset: d, style: { animationDelay: anim ? i * 90 + 'ms' : '0ms' } },
           el('rect', { class: 'pbase', x: -s.len / 2 - 3, y: -SEG_W / 2 - 5, width: s.len + 6, height: SEG_W + 10, rx: 7, fill: playerHex[p.color] || '#fff' }),
-          pieceArt[p.color] ? el('image', { href: pieceArt[p.color], x: -s.len / 2 - 2, y: -SEG_W / 2 - 9, width: s.len + 4, height: SEG_W + 18, preserveAspectRatio: 'none' }) : null));
-        g.append(inner);
+          pieceArt[p.color] ? el('image', { href: pieceArt[p.color], x: -s.len / 2 - 2, y: -SEG_W / 2 - 9, width: s.len + 4, height: SEG_W + 18, preserveAspectRatio: 'none' }) : null)));
       });
-      this.gPieces.append(g);
     }
     for (const [rid, g] of this.routeEls) {
       const r = this.routeById.get(rid);
       g.classList.toggle('owned', owner[rid] != null);
       g.classList.toggle('blocked', !!(doublesBlocked && r.twin && owner[r.twin] != null && owner[rid] == null));
     }
+  }
+
+  /** Keep a route's pieces invisible until reveal() (used while 3D wagons are flying in). */
+  hold(rid) { (this.held ||= new Map()).set(rid, new Set((this.segs.get(rid) || []).map((_, i) => i))); }
+  reveal(rid, i) {
+    const h = this.held?.get(rid);
+    if (h) { h.delete(i); if (!h.size) this.held.delete(rid); }
+    for (const n of this.gPieces.querySelectorAll(`.pc[data-rid="${CSS.escape(rid)}"][data-i="${i}"]`)) { n.classList.remove('held'); n.classList.add('landed'); }
+  }
+  /** Shine sweep up a freshly built line: bottom end of the route to the top end. */
+  shine(rid) {
+    const segs = [...(this.segs.get(rid) || [])].sort((a, b) => b.y - a.y);
+    segs.forEach((s, k) => {
+      const r = el('rect', { class: 'shine', x: -s.len / 2 - 12, y: -SEG_W / 2 - 14, width: s.len + 24, height: SEG_W + 28, rx: 14,
+        transform: `translate(${s.x.toFixed(1)} ${s.y.toFixed(1)}) rotate(${s.ang.toFixed(1)})`, style: { animationDelay: k * 70 + 'ms' } });
+      this.gShine.append(r);
+      setTimeout(() => r.remove(), 900 + k * 70);
+    });
+  }
+  revealAll(rid) { for (const i of [...(this.held?.get(rid) || [])]) this.reveal(rid, i); }
+  /** screen-space segments for a route (for the 3D fly-in) */
+  screenSegs(rid) {
+    return (this.segs.get(rid) || []).map((s) => {
+      const p = this.toScreen(s.x, s.y);
+      return { x: p.x, y: p.y, ang: s.ang, len: s.len * this.scale };
+    });
   }
 
   highlightCities(ids = []) {
