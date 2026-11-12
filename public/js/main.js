@@ -15,7 +15,7 @@ window.__introHooks = {
   start() { if (!sfx.ctx) return; sfx.ctx.resume().catch(() => {}); sfx.introSwell(); },
   letMeIn() { sfx.stopSwell(); sfx.fart(); },
 };
-window.__introEnableStart?.();
+sfx.ready.then(() => window.__introEnableStart?.()); // custom intro/fart sounds decoded before the click
 
 const state = { me: null, lobbies: { list: [], max: 12 }, lobby: null, boards: new Map(), view: null, geo: null, online: false };
 let screen = null;

@@ -7,13 +7,32 @@ const master = ctx ? ctx.createGain() : null;
 if (master) { master.gain.value = 0.9; master.connect(ctx.destination); }
 
 const overrides = {};
-fetch('/api/overrides').then((r) => r.json()).then(async ({ files = [] }) => {
-  for (const f of files) {
-    const m = /^sfx-([a-z]+)\.(mp3|ogg|wav)$/i.exec(f);
-    if (!m || !ctx) continue;
-    try { overrides[m[1].toLowerCase()] = await ctx.decodeAudioData(await (await fetch('/assets/overrides/' + f)).arrayBuffer()); } catch { /* ignore broken file */ }
-  }
-}).catch(() => {});
+/** Strip leading silence so overrides (e.g. a meme mp3) fire instantly. */
+function trimLead(buf, thr = 0.02) {
+  const d = buf.getChannelData(0);
+  let i = 0;
+  while (i < d.length && Math.abs(d[i]) < thr) i++;
+  i = Math.max(0, i - Math.floor(buf.sampleRate * 0.005));
+  if (i < buf.sampleRate * 0.01) return buf;
+  const out = ctx.createBuffer(buf.numberOfChannels, buf.length - i, buf.sampleRate);
+  for (let c = 0; c < buf.numberOfChannels; c++) out.getChannelData(c).set(buf.getChannelData(c).subarray(i));
+  return out;
+}
+/** Resolves once override sounds are decoded (or after 6 s, whichever first). */
+export const ready = Promise.race([
+  fetch('/api/overrides').then((r) => r.json()).then(async ({ files = [] }) => {
+    await Promise.all(files.map(async (f) => {
+      const m = /^sfx-([a-z]+)\.(mp3|ogg|wav)$/i.exec(f);
+      if (!m || !ctx) return;
+      try {
+        const data = await (await fetch('/assets/overrides/' + f)).arrayBuffer();
+        const buf = await new Promise((res, rej) => { const p = ctx.decodeAudioData(data, res, rej); if (p && p.then) p.then(res, rej); });
+        overrides[m[1].toLowerCase()] = trimLead(buf);
+      } catch { /* ignore broken file */ }
+    }));
+  }).catch(() => {}),
+  new Promise((res) => setTimeout(res, 6000)),
+]);
 
 function playBuffer(buf, gain = 1) {
   const src = ctx.createBufferSource(); src.buffer = buf;
