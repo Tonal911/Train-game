@@ -204,7 +204,7 @@ export class LobbyManager {
     const l = {
       id, name: cleanName(name, `${s.name}'s game`).slice(0, 24), hostPid: s.pid,
       maxPlayers: clampInt(maxPlayers, SETTINGS_LIMITS.maxPlayers),
-      settings: { trainsPerPlayer: SETTINGS_LIMITS.trainsPerPlayer.default, extraLocomotives: 0, extraCardsPerColor: 0, hideScores: false },
+      settings: { trainsPerPlayer: SETTINGS_LIMITS.trainsPerPlayer.default, extraLocomotives: 0, extraCardsPerColor: 0, hideScores: false, oneClaimPerTurn: false },
       members: [], status: 'waiting', game: null, board: this.defaultBoard, chat: [], createdAt: Date.now(),
     };
     this.lobbies.set(id, l);
@@ -267,6 +267,7 @@ export class LobbyManager {
     if (settings) {
       for (const k of ['trainsPerPlayer', 'extraLocomotives', 'extraCardsPerColor']) if (settings[k] != null) l.settings[k] = clampInt(settings[k], SETTINGS_LIMITS[k]);
       if (settings.hideScores != null) l.settings.hideScores = !!settings.hideScores;
+      if (settings.oneClaimPerTurn != null) l.settings.oneClaimPerTurn = !!settings.oneClaimPerTurn;
     }
     if (maxPlayers != null) l.maxPlayers = Math.max(l.members.length, clampInt(maxPlayers, SETTINGS_LIMITS.maxPlayers));
     if (name != null) l.name = cleanName(name, l.name).slice(0, 24);

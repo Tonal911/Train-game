@@ -25,6 +25,7 @@ export class Game {
       extraLocomotives: settings.extraLocomotives ?? 0,
       extraCardsPerColor: settings.extraCardsPerColor ?? 0,
       hideScores: !!settings.hideScores,
+      oneClaimPerTurn: !!settings.oneClaimPerTurn, // default: claims can be chained in one turn
     };
     const order = this.rng.shuffle([...players]);
     this.players = order.map((p) => ({
@@ -139,10 +140,17 @@ export class Game {
     if (this.turn.mode === 'tickets') fail('Choose which tickets to keep first.');
 
     switch (action.type) {
-      case 'drawCard': return this.drawCard(pi, action);
+      case 'drawCard':
+        if (this.turn.claimed) fail("You're building this turn: claim another route or END TURN.");
+        return this.drawCard(pi, action);
+      case 'endTurn': {
+        if (!this.turn.claimed) fail('Nothing to end: draw cards, claim a route, or take tickets.');
+        return this.endTurn();
+      }
       case 'claim': return this.claim(pi, action);
       case 'drawTickets': {
         if (this.turn.drawn) fail('You already started drawing cards this turn.');
+        if (this.turn.claimed) fail("You're building this turn: claim another route or END TURN.");
         if (!this.ticketDeck.length) fail('No destination tickets left.');
         p.pending = { ids: this.takeTickets(RULES.ticketsDrawn), min: RULES.ticketsKeep };
         this.turn.mode = 'tickets';
@@ -249,11 +257,19 @@ export class Game {
     const hide = this.settings.hideScores;
     this.addEvent({ type: 'claim', pid: p.pid, routeId: r.id, spent, points: hide ? null : pts });
     this.addLog(pi, `${p.name} claimed ${this.routeName(r)} (${L})${hide ? '' : ` for +${pts}`}.`);
-    this.endTurn();
+    this.turn.claimed = (this.turn.claimed || 0) + 1;
+    // chained building: keep the turn going while another claim is possible
+    if (this.settings.oneClaimPerTurn || !this.canClaimAny(pi)) return this.endTurn();
+  }
+
+  canClaimAny(pi) {
+    const hand = this.players[pi].hand;
+    return this.board.routes.some((r) => !this.claimBlock(pi, r) && paymentOptions(r, hand).length);
   }
 
   /** Host override when the current player is gone: auto-resolve whatever they owe and move on. */
   forceSkip(pid) {
+    if (this.turn.claimed && this.idx(pid) === this.current) { this.addLog(this.current, `${this.cur.name}'s turn was ended.`); return this.endTurn(); }
     const pi = this.idx(pid);
     if (pi < 0) return;
     const p = this.players[pi];
@@ -362,7 +378,8 @@ export class Game {
         hand: { ...p.hand },
         tickets: p.tickets.map((id) => ({ ...this.ticketsById.get(id), done: conn.same(this.ticketsById.get(id).a, this.ticketsById.get(id).b) })),
         pending: p.pending ? { tickets: p.pending.ids.map((id) => this.ticketsById.get(id)), min: Math.min(p.pending.min, p.pending.ids.length) } : null,
-        canPass: this.phase === 'playing' && me === this.current && !this.turn.drawn && this.turn.mode !== 'tickets' && !this.hasLegalAction(me),
+        canPass: this.phase === 'playing' && me === this.current && !this.turn.drawn && !this.turn.claimed && this.turn.mode !== 'tickets' && !this.hasLegalAction(me),
+        canEndTurn: this.phase === 'playing' && me === this.current && !!this.turn.claimed,
       };
     }
     return view;

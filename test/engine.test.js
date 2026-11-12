@@ -68,7 +68,7 @@ test('three face-up locomotives reset the market', () => {
 
 test('claiming: color rules, gray routes, locos, scoring, discard', () => {
   const b = board();
-  const g = new Game(b, mkPlayers(4), {}, 5);
+  const g = new Game(b, mkPlayers(4), { oneClaimPerTurn: true }, 5);
   startPlaying(g);
   const p = g.cur;
   const colored = b.routes.find((r) => r.color !== GRAY && !r.express && r.length === 3);
@@ -97,7 +97,7 @@ test('double routes: same player cannot take both; 2-3 players only one track', 
   const b = board();
   const dbl = b.routes.find((r) => r.twin && r.lane === -1);
   for (const n of [2, 4]) {
-    const g = new Game(b, mkPlayers(n), {}, 6);
+    const g = new Game(b, mkPlayers(n), { oneClaimPerTurn: true }, 6);
     startPlaying(g);
     const p = g.cur;
     p.hand[LOCO] = 20;
@@ -181,7 +181,7 @@ test('random bot games always finish with conserved cards and sane state', () =>
   for (let seed = 1; seed <= 40; seed++) {
     const rng = makeRng(seed * 7919);
     const n = 2 + (seed % 4);
-    const g = new Game(board(), mkPlayers(n), { trainsPerPlayer: 20 + (seed % 3) * 20 }, seed);
+    const g = new Game(board(), mkPlayers(n), { trainsPerPlayer: 20 + (seed % 3) * 20, oneClaimPerTurn: seed % 2 === 0 }, seed);
     for (const p of g.players) g.act(p.pid, { type: 'keepTickets', ids: p.pending.ids.slice(0, 2 + (seed % 2)) });
     let steps = 0;
     while (g.phase !== 'finished' && steps++ < 5000) {
@@ -189,7 +189,13 @@ test('random bot games always finish with conserved cards and sane state', () =>
       if (p.pending) { g.act(p.pid, { type: 'keepTickets', ids: p.pending.ids.slice(0, 1) }); continue; }
       const claimable = g.board.routes.filter((r) => !g.claimBlock(pi, r) && paymentOptions(r, p.hand).length);
       const roll = rng();
-      if (!g.turn.drawn && claimable.length && roll < 0.6) {
+      if (g.turn.claimed) {
+        if (claimable.length && roll < 0.7) {
+          const r = claimable[rng.int(claimable.length)];
+          const opt = paymentOptions(r, p.hand)[0];
+          g.act(p.pid, { type: 'claim', routeId: r.id, color: opt.color, locos: opt.locos });
+        } else g.act(p.pid, { type: 'endTurn' });
+      } else if (!g.turn.drawn && claimable.length && roll < 0.6) {
         const r = claimable.sort((a, b) => b.length - a.length)[0];
         const opt = paymentOptions(r, p.hand)[0];
         g.act(p.pid, { type: 'claim', routeId: r.id, color: opt.color, locos: opt.locos });
@@ -235,4 +241,38 @@ test('hidden scores: no score for anyone, no trains/tickets for others, all reve
   g.finish();
   const end = g.viewFor(p.pid);
   assert.ok(end.players.every((q) => q.score != null && q.trains != null && q.ticketCount != null));
+});
+
+test('chained claims: several routes in one turn, END TURN to finish; drawing blocked mid-chain', () => {
+  const g = new Game(board(), mkPlayers(2), {}, 12);
+  startPlaying(g);
+  const p = g.cur;
+  p.hand[LOCO] = 30;
+  const short = g.board.routes.filter((r) => r.length <= 2 && !r.twin).slice(0, 4);
+  for (const r of short) g.act(p.pid, { type: 'claim', routeId: r.id, color: null, locos: r.length });
+  assert.equal(g.cur, p);
+  assert.equal(p.routes.length, 4);
+  assert.equal(g.turn.claimed, 4);
+  assert.throws(() => g.act(p.pid, { type: 'drawCard', source: 'deck' }), /building/);
+  assert.throws(() => g.act(p.pid, { type: 'drawTickets' }), /building/);
+  assert.ok(g.viewFor(p.pid).you.canEndTurn);
+  g.act(p.pid, { type: 'endTurn' });
+  assert.notEqual(g.cur, p);
+  assert.throws(() => g.act(g.cur.pid, { type: 'endTurn' }), /Nothing to end/);
+});
+
+test('chained claims: turn auto-ends when no further claim is affordable; one-claim mode ends at once', () => {
+  const g = new Game(board(), mkPlayers(2), {}, 13);
+  startPlaying(g);
+  const p = g.cur;
+  for (const k of Object.keys(p.hand)) p.hand[k] = 0;
+  const r = g.board.routes.find((x) => x.length === 2 && !x.twin);
+  p.hand[LOCO] = 2;
+  g.act(p.pid, { type: 'claim', routeId: r.id, color: null, locos: 2 });
+  assert.notEqual(g.cur, p);
+  const g2 = new Game(board(), mkPlayers(2), { oneClaimPerTurn: true }, 14);
+  startPlaying(g2);
+  const q = g2.cur; q.hand[LOCO] = 30;
+  g2.act(q.pid, { type: 'claim', routeId: r.id, color: null, locos: 2 });
+  assert.notEqual(g2.cur, q);
 });

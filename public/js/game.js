@@ -80,6 +80,9 @@ export class GameScreen {
 
   layout() {
     const r = this.root.getBoundingClientRect();
+    // the player list always sits just under the (variable-height) turn banner
+    const top = Math.round(this.turnbar.getBoundingClientRect().bottom - r.top + 10);
+    if (this.players.style.top !== top + 'px') { this.players.style.top = top + 'px'; this.players.style.maxHeight = `calc(100vh - ${top + 14}px)`; }
     const pr = this.players.getBoundingClientRect(), hr = this.hand.getBoundingClientRect(), tr = this.turnbar.getBoundingClientRect(), mr = this.market.getBoundingClientRect();
     const kr = this.tickets.getBoundingClientRect();
     // the hand may overlap the empty Gulf/Mexico strip a little
@@ -128,10 +131,10 @@ export class GameScreen {
       main = 'GAME OVER!';
     } else if (this.myTurn) {
       main = 'YOUR TURN!';
-      sub = v.turn.mode === 'tickets' ? 'Choose which tickets to keep.' : v.turn.drawn ? 'Draw 1 more card (not a face-up Locomotive).' : 'Draw 2 cards · claim a route · or grab tickets.';
+      sub = v.turn.claimed ? `Keep building! ${v.turn.claimed} route${v.turn.claimed > 1 ? 's' : ''} so far. Claim another, or END TURN.` : v.turn.mode === 'tickets' ? 'Choose which tickets to keep.' : v.turn.drawn ? 'Draw 1 more card (not a face-up Locomotive).' : 'Draw 2 cards · claim a route · or grab tickets.';
     } else {
       main = `${cur.name.toUpperCase()}'S TURN`;
-      sub = v.turn.mode === 'tickets' ? `${cur.name} is choosing tickets…` : v.turn.drawn ? `${cur.name} drew a card…` : `${cur.name} is thinking…`;
+      sub = v.turn.claimed ? `${cur.name} is on a building spree (${v.turn.claimed})…` : v.turn.mode === 'tickets' ? `${cur.name} is choosing tickets…` : v.turn.drawn ? `${cur.name} drew a card…` : `${cur.name} is thinking…`;
     }
     this.turnbar.style.setProperty('--pc', PHEX[cur.color]);
     add(this.turnbar, el('div', { class: 'tb-main outline', text: main }));
@@ -139,6 +142,7 @@ export class GameScreen {
     if (v.settings?.hideScores && v.phase !== 'finished') this.turnbar.append(el('div', { class: 'tb-secret', text: 'SECRET SCORES MODE' }));
     if (v.finalTurns != null && v.phase === 'playing') add(this.turnbar, el('div', { class: 'tb-final', text: `FINAL ROUND · ${v.finalTurns} turn${v.finalTurns === 1 ? '' : 's'} left` }));
     const row = el('div', { class: 'row' });
+    if (this.me?.canEndTurn) row.append(el('button', { class: 'btn red big endturn', onclick: () => this.act({ type: 'endTurn' }), text: 'END TURN' }));
     if (this.me?.canPass) row.append(el('button', { class: 'btn yellow', onclick: () => this.act({ type: 'pass' }), text: 'PASS (nothing to do)' }));
     if (v.canSkip) {
       const who = v.phase === 'initialTickets' ? 'away players' : cur.name;
@@ -149,7 +153,7 @@ export class GameScreen {
 
   renderMarket(v) {
     clear(this.market);
-    const can = this.myTurn && v.turn.mode !== 'tickets';
+    const can = this.myTurn && v.turn.mode !== 'tickets' && !v.turn.claimed;
     const deckEmpty = v.deckCount + v.discardCount === 0;
     const deck = el('div', { class: 'pile deck' + (can && !deckEmpty ? ' live' : ''), title: 'Draw a blind card' },
       v.deckCount > 2 ? cardBackEl({ size: 'sm', cls: 'under2' }) : null,
@@ -173,7 +177,7 @@ export class GameScreen {
       v.discardTop ? cardEl(v.discardTop, { size: 'sm', cls: 'tilted' }) : el('div', { class: 'card sm empty', text: 'discard' }),
       el('div', { class: 'pilecount outline', text: String(v.discardCount) }));
     this.discardEl = discard;
-    const canT = this.myTurn && !v.turn.drawn && v.turn.mode !== 'tickets' && v.ticketDeckCount > 0;
+    const canT = this.myTurn && !v.turn.drawn && !v.turn.claimed && v.turn.mode !== 'tickets' && v.ticketDeckCount > 0;
     const tdeck = el('div', { class: 'pile tickets' + (canT ? ' live' : ''), title: 'Draw 3 destination tickets, keep at least 1' },
       el('div', { class: 'ticketback' }, el('span', { text: 'TICKETS' })),
       el('div', { class: 'pilecount outline', text: String(v.ticketDeckCount) }));

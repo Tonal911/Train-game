@@ -10,27 +10,12 @@ import * as sfx from './sfx.js';
 import * as voice from './voice.js';
 import { installHelp } from './help.js';
 
-// ---------- intro audio: big swell during the fade; LET ME IN cuts it and farts ----------
-window.__introHooks = { letMeIn() { sfx.stopSwell(); sfx.fart(); } };
-(function introAudio() {
-  const intro = document.getElementById('intro');
-  if (!intro || !sfx.ctx) return;
-  sfx.ctx.resume().catch(() => {});
-  setTimeout(() => {
-    if (!document.getElementById('intro')) return;
-    if (sfx.ctx.state === 'running') return sfx.introSwell();
-    // autoplay blocked: start the swell on the first click/key during the intro (does not skip it)
-    const hint = document.getElementById('intro-hint');
-    hint?.classList.remove('hidden');
-    const start = (e) => {
-      if (e.target?.id === 'intro-btn' || sfx.swellStarted()) return;
-      hint?.classList.add('hidden');
-      sfx.ctx.resume().then(() => { if (document.getElementById('intro')) sfx.introSwell(); }).catch(() => {});
-    };
-    intro.addEventListener('pointerdown', start);
-    addEventListener('keydown', start, { once: true });
-  }, 200);
-})();
+// ---------- intro audio: CLICK TO START unlocks audio and starts the swell; LET ME IN cuts it and farts ----------
+window.__introHooks = {
+  start() { if (!sfx.ctx) return; sfx.ctx.resume().catch(() => {}); sfx.introSwell(); },
+  letMeIn() { sfx.stopSwell(); sfx.fart(); },
+};
+window.__introEnableStart?.();
 
 const state = { me: null, lobbies: { list: [], max: 12 }, lobby: null, boards: new Map(), view: null, geo: null, online: false };
 let screen = null;

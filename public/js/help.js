@@ -7,6 +7,7 @@ function rulesBody() {
     el('li', { text: 'Each turn do exactly ONE thing: draw 2 train cards, claim a route, or draw destination tickets.' }),
     el('li', { text: 'Drawing: take cards from the 5 face-up ones or blind from the DRAW pile. A face-up Locomotive (the rainbow wild card) uses your whole draw, and you can\'t take one as your second card. Three face-up Locomotives? The market gets wiped and redealt.' }),
     el('li', { text: 'Claiming: pay as many cards as the route is long, all of the route\'s color. Gray routes take any ONE color. Locomotives count as any color.' }),
+    el('li', { text: 'Chained building (default): after claiming a route you can keep claiming more in the same turn, then hit END TURN. Once you start building you can\'t draw cards or tickets that turn. The host can switch to classic "one claim per turn".' }),
     el('li', { text: 'Double routes: you can\'t own both tracks. With 2-3 players, only one track of each double can be used at all.' }),
     el('li', { text: `Tickets: at the start you get ${RULES.initialTicketsDealt} and keep at least ${RULES.initialTicketsKeep}. Later you can draw ${RULES.ticketsDrawn} and keep at least ${RULES.ticketsKeep}. Connect both cities with your own routes to finish one.` }),
     el('li', { text: 'Striped yellow EXPRESS lines are huge (7-9 trains) and gray, so any single color works.' }),

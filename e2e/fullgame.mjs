@@ -17,6 +17,7 @@ async function mk(name) {
   page.on('pageerror', (e) => errors.push(`${name}: ${e.message}`));
   await page.goto(BASE);
   await page.waitForSelector('.screen.home', { timeout: 20000 });
+  await page.click('#intro-start:not([disabled])', { timeout: 20000 });
   await page.click('#intro-btn', { timeout: 20000 });
   await page.waitForSelector('#intro', { state: 'detached' });
   await page.evaluate((n) => window.__tg.net.send({ t: 'setName', name: n }), name);
@@ -27,6 +28,7 @@ await a.click('text=CREATE LOBBY');
 await a.waitForSelector('.screen.lobby');
 const code = (await a.textContent('.code.big')).trim();
 await b.goto(`${BASE}/?join=${code}`);
+await b.click('#intro-start:not([disabled])', { timeout: 20000 });
 await b.click('#intro-btn', { timeout: 20000 });
 await b.waitForSelector('.screen.lobby');
 await b.click("text=I'M READY");
@@ -44,6 +46,7 @@ const pick = `(() => {
   const me = v.you; if (me.pending) return { type: 'keepTickets', ids: [me.pending.tickets[0].id] };
   const board = s.boards.get(v.boardId), hand = me.hand, seat = me.seat, trains = v.players[seat].trains;
   if (!v.turn.drawn) {
+    if (v.turn.claimed && Math.random() < 0.4) return { type: 'endTurn' };
     const opts = [];
     for (const r of board.routes) {
       if (v.owner[r.id] != null || r.length > trains) continue;
@@ -54,6 +57,7 @@ const pick = `(() => {
     opts.sort((x, y) => y.r.length - x.r.length);
     if (opts.length) return { type: 'claim', routeId: opts[0].r.id, color: opts[0].locos === opts[0].r.length ? null : opts[0].c, locos: opts[0].locos };
   }
+  if (v.turn.claimed) return { type: 'endTurn' };
   if (v.deckCount + v.discardCount) return { type: 'drawCard', source: 'deck' };
   const i = v.faceUp.findIndex((c) => c && !(v.turn.drawn && c === 'loco'));
   if (i >= 0) return { type: 'drawCard', source: 'faceup', index: i };

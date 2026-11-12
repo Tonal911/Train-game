@@ -16,7 +16,7 @@ Refreshing or briefly losing your connection keeps your seat: your identity is s
 
 ### Rules
 - Setup: 4 train cards each, 5 face-up cards, 3 destination tickets each (keep at least 2), 45 trains each (adjustable per lobby).
-- On your turn, do exactly one of:
+- On your turn, do exactly one of (claims can be chained; see Lobby options):
   - **Draw 2 train cards**, blind or face-up. Taking a face-up Locomotive (wild) uses your whole turn, and you can't take one as your 2nd card. If 3 Locomotives are ever face-up, all 5 are discarded and redealt.
   - **Claim a route**: pay as many cards of its color as its length (gray means any single color). Locomotives substitute for anything. Score 1/2/4/7/10/15 for lengths 1–6, and 18/21/27 for the 7/8/9 express lines.
   - **Draw 3 destination tickets** and keep at least 1. Returned tickets go to the bottom of the pile.
@@ -26,6 +26,7 @@ Refreshing or briefly losing your connection keeps your seat: your identity is s
 - The draw pile reshuffles from the discards when it runs out. If nothing at all is possible, you may pass.
 
 ### Lobby options
+- **One claim per turn:** off by default. With it off, a player can chain as many claims as they can afford in one turn, then press **END TURN**. Once they start claiming, they can't draw cards or tickets that turn, and the turn ends automatically when nothing else is affordable. Turn it on for classic rules.
 - **Secret scores:** everyone's points are blacked out (yours too), and other players' train and ticket counts are hidden. Everything is revealed by the end-of-game show.
 - **Voice chat:** click **mic** in the lobby or the game. Audio goes through the game server at 4 kHz / 5-bit, so it sounds terrible on purpose. A green bar indicator lights up on the speaker's card. It needs https, or localhost.
 
@@ -117,7 +118,7 @@ Card colors themselves are data (`CARD_COLORS` in `shared/config.js`). Add an en
 
 ## Art
 - Map: `public/js/paintmap.js` paints a pale atlas (Natural Earth, public domain), then sloppy flat primaries over it: US red, Canada yellow, Mexico green. It adds a blue ocean with zigzag waves, dark-shade mountain zigzags and a few doodles.
-- Cards: Uno-ish layout (white rim, color face, tilted splat, corner symbol per color for colorblind players). The art is 3D toy wagons rendered in three.js and turned into white-outlined, slightly squeezed stickers. The Locomotive uses `public/assets/rainbow.jpg`. Every visit opens on `public/assets/loco.jpg`: an unskippable 3 s fade from black, then the "LET ME IN!!" button.
+- Cards: Uno-ish layout (white rim, color face, tilted splat, corner symbol per color for colorblind players). The art is 3D toy wagons rendered in three.js and turned into white-outlined, slightly squeezed stickers. The Locomotive uses `public/assets/rainbow.jpg`. Every visit opens on a CLICK TO START screen with a little vector loco; the click unlocks audio. Then `public/assets/loco.jpg` fades in from black over an unskippable 3 s with the swell, and the "LET ME IN!!" button follows.
 - **Swap in your own art** without touching code by dropping files into `public/assets/overrides/` (see the README there): `card-red.png`, …, `card-loco.png`, `piece-blue.png`, …, `cardback.png`.
 - `/cards.html` is a gallery of every card and piece.
 - Sounds are all synthesized in `public/js/sfx.js`:
@@ -132,7 +133,6 @@ Card colors themselves are data (`CARD_COLORS` in `shared/config.js`). Add an en
   - the loco's horn "speech"
 
   Replace any of them by dropping `sfx-intro.mp3`, `sfx-fart.mp3`, `sfx-thud.mp3`, `sfx-card.mp3`, `sfx-horn.mp3`, `sfx-fanfare.mp3` or `sfx-loser.mp3` into `public/assets/overrides/`.
-- Browsers block sound until the first click. If the intro swell can't autoplay, a hint says "click anywhere for sound". Clicking during the fade starts the swell without skipping the intro.
 
 ## Layout
 ```

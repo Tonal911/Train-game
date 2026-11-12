@@ -141,6 +141,12 @@ export class LobbyScreen {
         return el('label', { class: 'setting check' }, el('span', { text: 'Secret scores' }), cb,
           el('small', { text: "Everyone's points are blacked out (yours too), and you can't see other players' trains or ticket counts. Full tally at the end." }));
       })(),
+      (() => {
+        const cb = el('input', { type: 'checkbox', checked: l.settings.oneClaimPerTurn ? 'checked' : null, disabled: isHost ? null : 'disabled' });
+        cb.addEventListener('change', () => this.net.send({ t: 'settings', settings: { oneClaimPerTurn: cb.checked } }));
+        return el('label', { class: 'setting check' }, el('span', { text: 'One claim per turn' }), cb,
+          el('small', { text: 'Classic rules. Off (default): chain as many route claims as you can afford in one turn, then END TURN.' }));
+      })(),
       isHost ? null : el('p', { class: 'small', text: 'Only the host can change settings.' }));
 
     // map controls

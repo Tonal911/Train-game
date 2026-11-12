@@ -83,7 +83,7 @@ export function fart() {
   if (!ctx) return;
   unlock();
   if (overrides.fart) return playBuffer(overrides.fart, 1);
-  const t = ctx.currentTime + 0.02, dur = 1.1;
+  const t = ctx.currentTime, dur = 1.1;
   const o = ctx.createOscillator(); o.type = 'sawtooth';
   o.frequency.setValueAtTime(110, t);
   o.frequency.linearRampToValueAtTime(70, t + dur * 0.6);
@@ -99,7 +99,7 @@ export function fart() {
   const nb = ctx.createBiquadFilter(); nb.type = 'bandpass'; nb.frequency.value = 180; nb.Q.value = 1.4;
   const ng = ctx.createGain(); ng.gain.value = 0.5;
   const env = ctx.createGain();
-  env.gain.setValueAtTime(0, t); env.gain.linearRampToValueAtTime(1, t + 0.03); env.gain.setValueAtTime(1, t + dur * 0.75); env.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  env.gain.setValueAtTime(0, t); env.gain.linearRampToValueAtTime(1, t + 0.006); env.gain.setValueAtTime(1, t + dur * 0.75); env.gain.exponentialRampToValueAtTime(0.001, t + dur);
   o.connect(am).connect(lp).connect(env);
   n.connect(nb).connect(ng).connect(env);
   const dry = ctx.createGain(); dry.gain.value = 0.8;
